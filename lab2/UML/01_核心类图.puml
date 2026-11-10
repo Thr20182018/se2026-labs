@@ -1,0 +1,135 @@
+@startuml
+' 来源：实验一最终 requirements.md（lab1-final）；本聊天的模块与类设计讨论。
+!pragma layout smetana
+skinparam defaultFontName Microsoft YaHei
+skinparam defaultFontSize 15
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam linetype polyline
+skinparam classBackgroundColor #F8FAFC
+skinparam classBorderColor #475569
+skinparam ArrowColor #475569
+skinparam noteBackgroundColor #FFFBEA
+skinparam noteBorderColor #A3A3A3
+hide circle
+title 校园工作坊报名与候补管理系统\n核心类图
+
+class "用户\nUser" as User {
+  - id: Long
+  - account: String
+  - role: Role
+}
+
+class "活动\nActivity" as Activity {
+  - id: Long
+  - name: String
+  - description: String
+  - publicationStatus: PublicationStatus
+  - pendingName: String [0..1]
+  - pendingDescription: String [0..1]
+  - revisionPending: boolean
+  --
+  + submitForReview()
+  + approveAndPublish()
+  + rejectReview()
+  + proposeRevision(name, description)
+  + approveRevision()
+  + rejectRevision()
+}
+
+class "场次\nSession" as Session {
+  - id: Long
+  - startTime: DateTime
+  - endTime: DateTime
+  - registrationDeadline: DateTime
+  - location: String
+  - capacity: int
+  - publicationStatus: PublicationStatus
+  --
+  + validateTimeOrder(): boolean
+  + phaseAt(now: DateTime): SessionPhase
+  + remainingSeats(registeredCount: int): int
+  + changeCapacity(newCapacity, registeredCount, now)
+}
+
+class "报名记录\nRegistration" as Registration {
+  - id: Long
+  - registeredAt: DateTime
+  - status: RegistrationStatus
+  - checkedInAt: DateTime [0..1]
+  --
+  + promote()
+  + cancelByParticipant()
+  + cancelWithSession()
+  + checkIn(now: DateTime)
+  + markAbsent()
+  + expireWaitlist()
+}
+
+class "操作日志\nOperationLog" as OperationLog {
+  - id: Long
+  - operatedAt: DateTime
+  - actorType: USER / SYSTEM
+  - actorId: Long [0..1]
+  - activityId: Long [0..1]
+  - sessionId: Long [0..1]
+  - registrationId: Long [0..1]
+  - action: String
+  - result: String
+  - failureReason: String [0..1]
+  - beforeValue: String [0..1]
+  - afterValue: String [0..1]
+}
+
+User "1" -- "0..*" Activity : 负责（组织者）
+Activity "1" -- "0..*" Session : 包含
+Session "1" -- "0..*" Registration : 对应
+User "1" -- "0..*" Registration : 报名（参与者）
+User "0..1" -- "0..*" OperationLog : 操作者
+
+note left of User
+  Role：参与者、组织者、管理员。
+  一个账号只有一种角色，账号唯一。
+  使用角色属性区分三类用户。
+end note
+
+note right of Activity
+  初次审核与已发布内容修改分别处理。
+  名称、简介修改审核期间，仍展示原内容。
+  pending 字段保存待审核的名称和简介。
+end note
+
+note right of Session
+  时间使用服务器北京时间（UTC+8）。
+  报名截止时间 <= 开始时间 < 结束时间。
+  阶段（未开始、进行中、已结束）按时间计算。
+  剩余名额 = 容量 - 已报名人数。
+  已报名人数统计：报名成功、已签到、缺席。
+end note
+
+note left of Registration
+  RegistrationStatus：候补中、报名成功、
+  已取消、已签到、缺席、候补未成功。
+  同一人同一场次最多一条有效记录；
+  有效指“候补中”或“报名成功”。
+  报名与候补共用 Registration 类。
+  取消后重报建立新记录，原记录保留。
+end note
+
+note bottom of OperationLog
+  系统操作没有对应的用户，actorId 可空。
+  相关业务编号按操作对象保存，
+  用于活动、场次及报名记录的追溯与查询。
+  日志不可从业务界面修改、删除，不记录密码。
+end note
+
+legend bottom left
+  读图：每个方框是一种类；上部是属性，下部是操作。
+  “1”表示恰好一个，“0..*”表示零个或多个，“0..1”表示可选。
+  连线表示对象关联。
+  PublicationStatus：草稿、待审核、驳回、已发布、已取消。
+  业务服务协调权限检查、跨对象规则、并发控制与事务。
+  操作执行前校验报名截止、场次取消及报名状态。
+endlegend
+@enduml

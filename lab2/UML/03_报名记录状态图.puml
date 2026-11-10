@@ -1,0 +1,82 @@
+@startuml
+' 对象：一条 Registration 记录。
+' 依据：requirements.md 的 REQ-006、008—017。
+!pragma layout smetana
+skinparam defaultFontName Microsoft YaHei
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam stateBackgroundColor #F1F5F9
+skinparam stateBorderColor #475569
+skinparam ArrowColor #475569
+skinparam noteBackgroundColor #FFFBEA
+skinparam noteBorderColor #A3A3A3
+skinparam state {
+  BackgroundColor<<业务终态>> #E5E7EB
+  BorderColor<<业务终态>> #64748B
+}
+hide empty description
+title 报名记录状态图\n一条 Registration 记录的生命周期
+
+state InitialChoice <<choice>>
+state "候补中" as Waiting
+state "报名成功" as Registered
+state "已签到" as CheckedIn
+state "已取消" as Cancelled <<业务终态>>
+state "缺席" as Absent <<业务终态>>
+state "候补未成功" as Expired <<业务终态>>
+
+[*] --> InitialChoice
+InitialChoice --> Waiting : [本人选择候补且已满]\n/ 新建记录，排到队尾
+InitialChoice --> Registered : [报名请求获分配名额]\n/ 新建记录，占用名额
+
+Waiting --> Registered : 取消报名或增加容量触发递补\n[截止前、有空位且轮到本记录]\n/ 系统将本记录转为报名成功
+Waiting --> Expired : 达到报名截止时刻\n/ 系统结束候补
+Waiting --> Cancelled : 本人退出候补 [截止前]\n或场次取消 [尚未结束]
+Registered --> CheckedIn : 组织者执行签到\n[有操作权限且场次未取消]\n/ 记录签到时间
+Registered --> Absent : 达到场次结束时间\n[场次未取消且仍为报名成功]\n/ 系统标记缺席
+Registered --> Cancelled : 本人取消报名 [截止前]\n或场次取消 [尚未结束]
+CheckedIn --> Cancelled : 场次取消 [尚未结束]\n/ 联动更新为已取消
+
+CheckedIn : 重复签到 / 提示已签到，不改时间、不重复计数
+CheckedIn : 场次正常结束后保持已签到
+
+note left of InitialChoice
+  仅合法的新建请求从入口进入：
+  活动与场次已发布，场次未取消，报名未截止；
+  操作者已登录，且符合本场次再次报名规则。
+  先分配给已有候补，再接受新的直接报名。
+  重复提交返回已有记录，不再走新建入口。
+  满额报名失败后，由本人选择是否候补。
+end note
+
+note left of Waiting
+  候补不占名额，按加入顺序排列。
+  截止后停止递补，剩余候补转为候补未成功。
+  取消报名和首位候补递补在同一事务中完成。
+end note
+
+note right of CheckedIn
+  场次取消时，已签到记录联动转为已取消。
+  参与者不能自行取消已签到记录。
+  场次取消仅限结束前。
+end note
+
+note bottom of Cancelled
+  已取消、缺席、候补未成功为业务终态，保留记录。
+  已取消且未截止时，可重新申请创建新记录，
+  并校验场次可报名等条件；旧记录保持已取消。
+  重新候补按新的加入顺序排到队尾。
+end note
+
+legend bottom left
+  箭头格式：触发事件 [条件] / 执行动作；同一箭头可以列出两个允许的触发事件。
+  黑点是合法新记录的入口；菱形用于选择初始业务状态。
+  “截止前”为服务器北京时间早于报名截止时间，“尚未结束”为早于场次结束时间。
+  “场次取消”由有权限的组织者或管理员执行，包含取消整个活动时的联动取消。
+  只允许图示的 7 种业务状态转换（REQ-006）。
+  已签到、缺席、候补未成功期间不能新建本场次报名或候补记录。
+  统计口径沿用 REQ-016：报名成功、已签到、缺席计入报名人数；已签到计入到场人数。
+  已签到改为已取消后，报名人数与到场人数均减少；取消的场次不再报名、递补或签到。
+  状态变更、对应日志及涉及的名额分配保持一致；跨记录事务与锁见时序图。
+endlegend
+@enduml

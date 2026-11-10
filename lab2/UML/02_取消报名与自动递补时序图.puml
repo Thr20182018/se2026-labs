@@ -1,0 +1,98 @@
+@startuml
+' 需求依据：REQ-001、005、006、011、012、016、017、020。
+skinparam defaultFontName Microsoft YaHei
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam sequenceParticipantBackgroundColor #F1F5F9
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceGroupBackgroundColor #F8FAFC
+skinparam noteBackgroundColor #FFFBEA
+skinparam noteBorderColor #A3A3A3
+hide footbox
+autonumber
+title 取消报名与自动递补时序图
+
+actor "参与者" as User
+boundary "报名页面" as Page
+control "报名服务\nRegistrationService" as Service
+entity "原报名记录\nr: Registration" as Original
+entity "队首候补记录\nw: Registration" as Waiting
+database "数据库" as DB
+
+note over User, DB
+  参与者取消自己的“报名成功”记录。
+  服务从登录上下文取得操作者身份。
+end note
+
+User -> Page : 点击取消报名
+Page -> Service : cancelRegistration(registrationId)
+activate Service
+Service -> DB : 按报名编号和当前用户查找所属场次
+DB --> Service : 返回场次编号，或未找到本人记录
+
+alt 未登录、无权操作或记录不存在
+  Service -> DB : 另行保存拒绝日志（不泄露他人数据）
+  Service --> Page : 拒绝请求，业务数据不变
+  Page --> User : 显示失败提示
+else 找到本人记录
+  Service -> DB : 开启事务，锁定所属场次记录
+  note right of Service
+    同一场次的名额变更串行处理。
+    加锁后重新校验最新数据与服务器时间。
+    普通浏览查询读取已提交数据的快照。
+  end note
+  Service -> DB : 锁内重新读取场次和原报名的最新状态
+  DB --> Service : 场次信息、原报名记录 r
+  Service -> Service : 校验归属、报名成功状态、场次可用\n及服务器当前时间早于报名截止时间
+
+  alt 校验未通过
+    Service -> DB : 回滚事务，释放场次锁
+    Service -> DB : 用独立事务保存失败原因
+    Service --> Page : 返回拒绝原因，不改变报名
+    Page --> User : 显示失败提示
+  else 校验通过
+    Service -> DB : 按加入顺序读取首条“候补中”记录
+    DB --> Service : 返回候补记录 w，或无候补
+    Service -> Original : cancelByParticipant()
+    Original --> Service : 内存状态：报名成功 → 已取消
+
+    alt 存在可递补的候补记录 w
+      Service -> Waiting : promote()
+      Waiting --> Service : 内存状态：候补中 → 报名成功
+      Service -> Service : 准备取消日志（操作者为参与者）\n及递补日志（操作者为系统）
+    else 无候补
+      Service -> Service : 只准备取消日志\n提交后计算得到的剩余名额增加 1
+    end
+
+    Service -> DB : 在当前事务内保存 r、可选的 w\n及对应的成功操作日志
+    alt 写入成功
+      DB --> Service : 写入完成，等待提交
+      Service -> DB : 提交事务，释放场次锁
+      DB --> Service : 确认提交成功
+      Service --> Page : 返回取消成功
+      Page --> User : 更新本人报名状态\n后续名额查询读取提交后的记录
+    else 提交前保存失败
+      DB --> Service : 返回错误
+      Service -> DB : 回滚全部业务写入及成功日志，释放锁
+      Service -> Service : 丢弃本次内存对象变更
+      Service -> DB : 用独立事务记录失败原因
+      Service --> Page : 返回取消失败，可重试
+      Page --> User : 显示失败提示
+    end
+  end
+end
+deactivate Service
+
+note over Service, DB
+  事务提交前发生确定的失败时，回滚业务修改并独立记录失败原因。
+  各名额变更入口使用同一场次锁，锁内读取最新已提交记录。
+  剩余名额 = 容量 - 报名人数。
+end note
+
+legend bottom left
+  自上而下阅读：实线箭头表示调用，虚线箭头表示返回。
+  alt / else 表示互斥分支；r、w 是同一种 Registration 类的两个对象。
+  RegistrationService 协调原报名与候补记录的状态更新。
+endlegend
+@enduml

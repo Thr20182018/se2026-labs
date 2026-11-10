@@ -1,0 +1,71 @@
+@startuml
+' 系统逻辑组件及依赖关系。
+' 基线：实验一最终 requirements.md；已有核心类图、时序图和状态图。
+skinparam defaultFontName Microsoft YaHei
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam componentBackgroundColor #F1F5F9
+skinparam componentBorderColor #475569
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #94A3B8
+skinparam ArrowColor #475569
+skinparam noteBackgroundColor #FFFBEA
+skinparam noteBorderColor #A3A3A3
+skinparam nodesep 45
+skinparam ranksep 55
+top to bottom direction
+title 校园工作坊报名与候补管理系统\n系统组件图
+
+component "网站界面\n参与者 / 组织者 / 管理员" as Web
+
+package "后端应用：各组件在同一应用内协作" as App {
+  component "请求入口\n请求解析、登录身份检查、路由与结果返回" as Entry
+
+  package "业务功能组件" as Business {
+    component "活动与场次\nActivityService\n创建、修改、审核与发布、多条件查询\n容量管理、活动及场次取消\nREQ-003、004、007、015" as Activity
+    component "报名与候补\nRegistrationService\n报名、取消、候补、自动递补\n唯一记录、名额检查、截止处理\nREQ-006、008—012、020" as Registration
+    component "签到与缺席\nAttendanceService\n签到、重复签到处理、结束后标记缺席\nREQ-013、014" as Attendance
+    component "名单与统计\nStatisticsService\n名单导出，报名、到场、缺席及剩余名额统计\nREQ-016" as Statistics
+
+    Activity .right.> Registration : 容量检查、增加容量后的递补\n取消场次时联动取消报名记录
+    Activity -[hidden]down- Attendance
+    Registration -[hidden]down- Statistics
+    Attendance -[hidden]right- Statistics
+  }
+
+  package "共享支撑：各业务组件按需使用" as Shared {
+    component "身份与权限\nAccessControl\n取得当前身份，校验角色与对象访问范围\nREQ-001、019" as Access
+    component "操作日志\nOperationLogService\n写入成功或失败记录、按条件查询\nREQ-017" as Audit
+    component "共享持久化与事务支持\nRepositories / TransactionSupport\n读取和保存核心对象、统计查询、场次锁\n复用调用方事务，支持独立的失败日志事务\nREQ-005、020" as Persistence
+  }
+  component "时间任务入口\n到达截止时间 / 场次结束时间" as Scheduler
+}
+
+database "同一业务数据库\n用户、活动、场次、报名记录、操作日志" as DB
+
+Web .down.> Entry : 提交请求 / 查询结果
+Entry .down.> Business : 调用对应业务接口
+Entry ..> Shared : 身份检查、日志查询及入口拒绝记录
+Business .down.> Shared : 权限检查、操作日志、数据访问与事务
+Access ..> Persistence : 查询账号角色及归属依据
+Audit ..> Persistence : 保存 / 查询日志
+Audit ..> Access : 日志查询权限检查
+Persistence .down.> DB : 数据访问与事务操作
+Scheduler ..> Registration : 截止后关闭候补
+Scheduler ..> Attendance : 场次结束后标记缺席
+
+legend bottom left
+  方框是逻辑组件，一个组件可以包含多个类；Service / AccessControl 为主要入口名称。
+  A ..> B 表示 A 使用 B 提供的能力。
+  指向分组框的依赖表示使用框内对应能力；从分组框发出的依赖合并表示内部组件按需使用。
+  系统采用一个后端应用及一个业务数据库；各组件通过应用内调用协作。
+  身份权限、日志、四个业务功能组件构成六个主要功能模块；入口、任务和持久化是内部支撑。
+  ActivityService 发起取消或容量变更事务；被调用的 RegistrationService 与成功日志共用该事务及场次锁。
+  RegistrationService 通过持久化层读取场次，不反向调用 ActivityService；独立处理报名或取消时自行开启事务。
+  签到、缺席及其他报名状态变更也使用同一场次锁规则；时间任务注明系统操作者，走相同业务校验。
+  成功日志随业务提交；失败日志在回滚后另行保存。日志查询先按角色和活动归属授权，参与者不能查看。
+  统计基于同一已提交数据视图，按报名记录计算人数与剩余名额。
+  五种核心对象沿用类图：User、Activity、Session、Registration、OperationLog。
+endlegend
+@enduml
