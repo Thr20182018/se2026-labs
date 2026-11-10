@@ -246,7 +246,21 @@ cd code
 | D-004 | 已确认 | 每轮长任务不超过 2000 行、按一个上下文窗口执行；首轮调整为 M1，后续按 T2～T7 分批推进。Cursor 云 Agent 实现，本助手统筹、审查和修复 |
 | D-005 | 已确认 | 每轮任务一个分支和一个 PR；Cursor 提交推送任务实现，本助手审查修复；用户确认后以 Squash and merge 合入 main |
 
-## 10. 实验交付
+## 10. T1 固定版本与本轮安排
+
+| 项 | 取值 |
+|---|---|
+| Spring Boot | 3.5.16，使用 starter-web、starter-security、starter-thymeleaf、starter-jdbc |
+| MySQL 驱动 | 随 Spring Boot 3.5.16 管理 |
+| thymeleaf-extras-springsecurity6 | 3.1.6.RELEASE |
+| Maven Wrapper | 3.9.16 |
+| maven-checkstyle-plugin / Checkstyle | 3.6.0 / 10.26.1 |
+
+云环境记录为 se2026-labs-java21-mysql84，环境 ID `5eb94aaa-dd09-11f1-ba91-f63b1661ac50`，已激活构建 `bld-20261110-c8b4f6e2-98a2-4ee8-a76d-1994d1c2c6bf`。本轮使用一个会话：Grok 4.7 High，上下文 256K，Fast 关闭。
+
+本轮代理虚拟机启动自较早快照，没有挂到上述环境文件。验证时在本机以 MySQL 8.4.13 监听 127.0.0.1:13306，并为 `workshop_dev`、`workshop_test` 使用不同账号。应用只从环境变量读取连接。
+
+## 11. 实验交付
 
 截止时间：2026-11-29 23:59。实现代码量大于 1500 行，GUI 设计工具自动生成的代码不计入；统计时分别列出业务代码、页面、测试和生成内容，并注明统计方法。
 

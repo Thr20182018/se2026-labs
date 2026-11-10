@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>活动 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('manage')}"></div>
+  <main class="sheet narrow">
+    <h1 th:text="${activityName}">活动名称</h1>
+    <p>当前账号负责此活动。编辑与审核尚未开放。</p>
+    <a class="back" href="/organizer/activities">返回活动管理</a>
+  </main>
+</body>
+</html>

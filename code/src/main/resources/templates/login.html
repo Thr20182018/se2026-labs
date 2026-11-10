@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>登录 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body class="login-body">
+  <header class="top">
+    <a class="brand" href="/login">
+      <img th:src="@{/images/mark.svg}" alt="">
+      <span><strong>校园工作坊</strong><small>CAMPUS WORKSHOPS</small></span>
+    </a>
+    <span class="top-note">校园工作坊报名与候补管理系统</span>
+  </header>
+  <main class="login-grid">
+    <section class="hero">
+      <p class="eyebrow">CAMPUS WORKSHOPS</p>
+      <h1>从一场体验开始，<br>让兴趣在校园里发生。</h1>
+      <p>发现工作坊，遇见新的可能。</p>
+      <div class="hero-notes">
+        <div class="hero-card">把想法，变成亲手做出的作品。</div>
+        <div class="hero-chip">
+          <strong>一点好奇，一次尝试</strong>
+          <span>FREE / ON CAMPUS</span>
+        </div>
+      </div>
+      <p class="hero-foot">本校 · 免费 · 线下</p>
+    </section>
+    <section class="panel">
+      <h2>欢迎回来</h2>
+      <p class="muted">登录校园工作坊</p>
+      <form th:action="@{/login}" method="post">
+        <label>账号
+          <input name="username" autocomplete="username" required>
+        </label>
+        <label>密码
+          <input name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="error" th:if="${param.error}">账号或密码错误，请重新输入</p>
+        <p class="ok" th:if="${param.logout}">您已退出登录</p>
+        <button type="submit">登录</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

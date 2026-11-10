@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>无权访问 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('')}"></div>
+  <main class="sheet narrow">
+    <h1>无权访问</h1>
+    <p>无权访问此页面。当前账号不能执行该操作。</p>
+    <a class="back" href="/workshops">返回活动查询</a>
+  </main>
+</body>
+</html>

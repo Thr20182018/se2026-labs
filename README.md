@@ -2,7 +2,7 @@
 
 南京大学《软件工程》课程实验项目，对应“活动票务与报名系统”选题。项目面向本校免费线下工作坊，围绕活动发布、场次报名、候补递补和现场签到开展需求分析、软件设计与实现。
 
-目前已完成实验一的需求分析和实验二的软件设计，形成 20 条已确认需求、4 张 UML 图和 9 张 UI 界面。实验三已完成开发基线，下一步是 T1：工程基础、登录权限与活动查询。
+目前已完成实验一的需求分析和实验二的软件设计，形成 20 条已确认需求、4 张 UML 图和 9 张 UI 界面。实验三 T1 已实现工程、登录权限和活动查询，源码在 [code/](code/)。
 
 ## 用户与主要功能
 
@@ -34,7 +34,7 @@ UI 使用 SVG 制作并在 Pixso 中整理，统一采用 NJU 校徽和紫色强
 
 ## 实验三实现安排
 
-技术栈采用 Java 21、Spring Boot、Spring Security、Thymeleaf、MySQL 8.4 和 JdbcTemplate，使用 Maven Wrapper 构建，JUnit 与 Checkstyle 验证。源码将在 T1 中建立的 `code/` 目录内按业务模块组织。
+技术栈采用 Java 21、Spring Boot 3.5.16、Spring Security、Thymeleaf、MySQL 8.4 和 JdbcTemplate，使用 Maven Wrapper 3.9.16 构建，JUnit 与 Checkstyle 验证。源码在 `code/` 中按业务模块组织。启动、初始化和测试见 [code/README.md](code/README.md)。
 
 每轮任务使用一个 Cursor 云 Agent 会话，新增及改写的手写非空行不超过 2000 行，包含测试、页面、SQL 和配置。Cursor 负责实现，协调助手负责审查与修复，项目负责人确认合并。每轮从最新 `main` 创建任务分支，通过一个 PR 审查后以 Squash and merge 合并。
 
@@ -59,7 +59,8 @@ se2026-labs/
 ├── requirements.md           # 需求规格说明
 ├── chat.txt                  # 访谈、AI 交互与人工审查记录
 ├── UML/                      # 4 张 UML 的 PlantUML 源文件与 PNG
-└── UI界面/                   # 9 张正式界面 PNG
+├── UI界面/                   # 9 张正式界面 PNG
+└── code/                     # Spring Boot 工程、页面、SQL 与测试
 ```
 
 Markdown 文档和 PNG 图片可直接在 GitHub 中查看；修改 UML 时可使用 PlantUML 编辑 `.puml` 文件。

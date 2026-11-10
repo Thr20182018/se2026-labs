@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>发现工作坊 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('workshops')}"></div>
+  <main class="sheet">
+    <div class="page-head">
+      <div>
+        <h1>发现校园工作坊</h1>
+        <p class="muted">从一场体验开始，让兴趣在校园里发生。</p>
+      </div>
+      <span class="free">免费线下活动</span>
+    </div>
+    <form class="filters" method="get" action="/workshops">
+      <label>活动名称
+        <input type="search" name="keyword" th:value="${keyword}" placeholder="输入活动名称关键词">
+      </label>
+      <label>场次举办日期
+        <span class="dates">
+          <input type="date" name="dateFrom" th:value="${dateFrom}">
+          <span>至</span>
+          <input type="date" name="dateTo" th:value="${dateTo}">
+        </span>
+      </label>
+      <label>报名情况
+        <select name="availability">
+          <option value="" th:selected="${availability == ''}">全部状态</option>
+          <option value="open" th:selected="${availability == 'open'}">可报名</option>
+          <option value="waitlist" th:selected="${availability == 'waitlist'}">已满可候补</option>
+          <option value="closed" th:selected="${availability == 'closed'}">已截止</option>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button type="submit">查询</button>
+        <a href="/workshops">重置</a>
+      </div>
+    </form>
+    <p class="error" th:if="${message}" th:text="${message}"></p>
+    <section th:if="${result != null}">
+      <div class="list-head">
+        <h2>工作坊场次 <span th:text="'共 ' + ${result.total} + ' 个场次'">共 0 个场次</span></h2>
+        <span class="muted">按开始时间从近到远</span>
+      </div>
+      <p class="empty" th:if="${result.total == 0}">暂无符合条件的场次</p>
+      <div class="board" th:if="${result.total > 0}">
+        <div class="sessions">
+          <article class="session" th:each="row, stat : ${result.rows}"
+              th:classappend="${stat.first} ? ' is-selected' : ''">
+            <div class="day">
+              <span th:text="${row.monthLabel}">11月</span>
+              <strong th:text="${row.dayOfMonth}">14</strong>
+              <span th:text="${row.weekdayLabel}">周六</span>
+            </div>
+            <div>
+              <h3 th:text="${row.name}">活动名称</h3>
+              <p th:text="${row.monthLabel} + ${row.dayOfMonth} + '日 ' + ${row.clockRange}
+                  + ' · ' + ${row.location}">时间 · 地点</p>
+              <p class="muted" th:text="'报名截止 ' + ${row.deadlineLabel}">截止</p>
+            </div>
+            <div class="seat">
+              <span class="status" th:classappend="${row.availability.name()}"
+                  th:text="${row.availability.label}">可报名</span>
+              <p th:text="'剩余 ' + ${row.remaining} + ' / ' + ${row.capacity} + ' 个名额'">剩余名额</p>
+            </div>
+          </article>
+        </div>
+        <aside class="detail" th:with="row=${result.rows[0]}">
+          <div class="detail-top">
+            <span>场次详情</span>
+            <span class="free">免费</span>
+          </div>
+          <div class="detail-banner">
+            <strong th:text="${row.name}">活动名称</strong>
+          </div>
+          <p th:text="${row.description}">简介</p>
+          <ul>
+            <li><span>时间</span><strong th:text="${row.detailTime}">时间</strong></li>
+            <li><span>地点</span><strong th:text="${row.location}">地点</strong></li>
+            <li><span>截止</span><strong th:text="${row.deadlineLabel}">截止</strong></li>
+            <li><span>名额</span>
+              <strong th:text="'共 ' + ${row.capacity} + ' 个，剩余 ' + ${row.remaining}">名额</strong>
+            </li>
+            <li><span>状态</span><strong th:text="${row.availability.label}">状态</strong></li>
+          </ul>
+          <button type="button" disabled th:text="${row.actionLabel}">报名此场次</button>
+        </aside>
+      </div>
+      <nav class="pager" th:if="${result.pages > 1}">
+        <a th:if="${result.page > 1}"
+            th:href="@{/workshops(keyword=${keyword},dateFrom=${dateFrom},dateTo=${dateTo},availability=${availability},page=${result.page - 1})}">上一页</a>
+        <span th:text="${result.page} + ' / ' + ${result.pages}">1 / 1</span>
+        <a th:if="${result.page < result.pages}"
+            th:href="@{/workshops(keyword=${keyword},dateFrom=${dateFrom},dateTo=${dateTo},availability=${availability},page=${result.page + 1})}">下一页</a>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>
