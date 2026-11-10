@@ -13,8 +13,7 @@ public class ActivityQueryRepository {
 
   static final String STATUS =
       "CASE"
-          + " WHEN a.publication_status = 'CANCELLED'"
-          + " OR s.publication_status = 'CANCELLED' THEN 'CANCELLED'"
+          + " WHEN s.publication_status = 'CANCELLED' THEN 'CANCELLED'"
           + " WHEN s.registration_deadline <= ? THEN 'CLOSED'"
           + " WHEN s.capacity <= COALESCE(r.registered_count, 0) THEN 'WAITLIST'"
           + " ELSE 'OPEN' END";
@@ -40,19 +39,20 @@ public class ActivityQueryRepository {
   public QueryPage search(ActivityQuery query, LocalDateTime now, int pageSize) {
     List<Object> filters = new ArrayList<>();
     String where = where(query, now, filters);
-    Integer total = jdbc.queryForObject(
+    int total = jdbc.queryForObject(
         "SELECT COUNT(*)" + FROM + where, Integer.class, filters.toArray());
+    int page = Math.min(query.page(), Math.max(1, (total + pageSize - 1) / pageSize));
     List<Object> args = new ArrayList<>();
     args.add(now);
     args.addAll(filters);
     args.add(pageSize);
-    args.add((query.page() - 1L) * pageSize);
+    args.add((page - 1L) * pageSize);
     List<SessionRow> rows = jdbc.query(
         "SELECT " + COLUMNS + ", " + STATUS + " AS availability" + FROM + where
             + " ORDER BY s.start_time ASC, s.id ASC LIMIT ? OFFSET ?",
         ActivityQueryRepository::map,
         args.toArray());
-    return new QueryPage(rows, total == null ? 0 : total, query.page(), pageSize);
+    return new QueryPage(rows, total, page, pageSize);
   }
 
   private static String where(ActivityQuery query, LocalDateTime now, List<Object> args) {

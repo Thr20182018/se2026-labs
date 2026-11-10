@@ -49,8 +49,9 @@
       <p class="empty" th:if="${result.total == 0}">暂无符合条件的场次</p>
       <div class="board" th:if="${result.total > 0}">
         <div class="sessions">
-          <article class="session" th:each="row, stat : ${result.rows}"
-              th:classappend="${stat.first} ? ' is-selected' : ''">
+          <a class="session" th:each="row : ${result.rows}"
+              th:href="@{/workshops(keyword=${keyword},dateFrom=${dateFrom},dateTo=${dateTo},availability=${availability},page=${result.page},selected=${row.id})}"
+              th:classappend="${row.id == selected.id} ? ' is-selected' : ''">
             <div class="day">
               <span th:text="${row.monthLabel}">11月</span>
               <strong th:text="${row.dayOfMonth}">14</strong>
@@ -67,9 +68,9 @@
                   th:text="${row.availability.label}">可报名</span>
               <p th:text="'剩余 ' + ${row.remaining} + ' / ' + ${row.capacity} + ' 个名额'">剩余名额</p>
             </div>
-          </article>
+          </a>
         </div>
-        <aside class="detail" th:with="row=${result.rows[0]}">
+        <aside class="detail" th:with="row=${selected}">
           <div class="detail-top">
             <span>场次详情</span>
             <span class="free">免费</span>

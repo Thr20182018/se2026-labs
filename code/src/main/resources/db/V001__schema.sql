@@ -1,11 +1,5 @@
 -- 校园工作坊业务表。时间列保存北京时间（UTC+8）的墙上时间。
--- 本脚本可重复执行：先删除后创建。只应在目标库上手工运行。
-
-DROP TABLE IF EXISTS operation_logs;
-DROP TABLE IF EXISTS registrations;
-DROP TABLE IF EXISTS sessions;
-DROP TABLE IF EXISTS activities;
-DROP TABLE IF EXISTS users;
+-- 在空数据库执行一次，后续结构变更使用新的编号脚本。
 
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,

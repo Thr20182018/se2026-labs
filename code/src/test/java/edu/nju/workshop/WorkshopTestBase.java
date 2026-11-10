@@ -15,7 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -42,8 +44,7 @@ abstract class WorkshopTestBase {
   MutableClock clock;
 
   /**
-   * 操作系统里的 SPRING_DATASOURCE_* 优先级高于 application-test.yml。
-   * 测试必须改绑到 TEST_DB_*，避免误连开发库。
+   * 测试用 TEST_DB_* 覆盖应用的 SPRING_DATASOURCE_* 连接，重置数据前另行校验库名。
    */
   @DynamicPropertySource
   static void testDatabase(DynamicPropertyRegistry registry) {
@@ -55,7 +56,16 @@ abstract class WorkshopTestBase {
   @BeforeEach
   void resetTestDatabase() {
     assertTestDatabase();
-    SqlScripts.execute(jdbc, "db/V001__schema.sql");
+    for (String table : new String[] {
+        "operation_logs", "registrations", "sessions", "activities", "users"}) {
+      jdbc.execute("DROP TABLE IF EXISTS " + table);
+    }
+    executeScript("db/V001__schema.sql");
+  }
+
+  void executeScript(String classpath) {
+    new ResourceDatabasePopulator(new ClassPathResource(classpath))
+        .execute(Objects.requireNonNull(jdbc.getDataSource()));
   }
 
   void user(long id, String account, String name, String role) {

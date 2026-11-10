@@ -23,6 +23,7 @@ public class ActivityQueryController {
       @RequestParam(required = false) String dateTo,
       @RequestParam(required = false) String availability,
       @RequestParam(name = "page", required = false) String page,
+      @RequestParam(defaultValue = "0") long selected,
       Model model) {
     model.addAttribute("keyword", keyword == null ? "" : keyword);
     model.addAttribute("dateFrom", blank(dateFrom));
@@ -30,7 +31,11 @@ public class ActivityQueryController {
     model.addAttribute("availability", availability == null ? "" : availability);
     try {
       ActivityQuery query = ActivityQuery.parse(keyword, dateFrom, dateTo, availability, page);
-      model.addAttribute("result", service.search(query, PAGE_SIZE));
+      QueryPage result = service.search(query, PAGE_SIZE);
+      model.addAttribute("result", result);
+      model.addAttribute("selected", result.rows().stream()
+          .filter(row -> row.id() == selected).findFirst()
+          .orElse(result.rows().isEmpty() ? null : result.rows().getFirst()));
     } catch (IllegalArgumentException ex) {
       model.addAttribute("message", ex.getMessage());
     }

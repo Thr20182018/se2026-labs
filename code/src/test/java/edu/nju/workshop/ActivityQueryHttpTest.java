@@ -80,7 +80,7 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     session(2, 2, "2026-11-18 15:00:00", "2026-11-18 17:00:00", "2026-11-10 10:00:00",
         5, "PUBLISHED");
     session(3, 3, "2026-11-19 15:00:00", "2026-11-19 17:00:00", "2026-11-18 18:00:00",
-        5, "PUBLISHED");
+        5, "CANCELLED");
     session(4, 4, "2026-11-19 18:00:00", "2026-11-19 20:00:00", "2026-11-18 18:00:00",
         5, "CANCELLED");
     registration(1, 1, 1, "REGISTERED");
@@ -111,6 +111,10 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     assertTrue(all.indexOf("容量场次") < all.indexOf("截止场次"));
     assertTrue(all.indexOf("截止场次") < all.indexOf("取消场次"));
     assertTrue(all.indexOf("取消场次") < all.indexOf("单独取消"));
+    session(5, 3, "2026-11-09 15:00:00", "2026-11-09 17:00:00", "2026-11-08 18:00:00",
+        5, "PUBLISHED");
+    // 活动取消只联动未结束场次，历史场次仍应按原状态展示。
+    assertTrue(search("取消场次", "2026-11-09", "2026-11-09", "closed").contains("已截止"));
   }
 
   @Test
@@ -153,6 +157,11 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     String literal = search("%", "", "", "");
     assertTrue(literal.contains("100%体验"));
     assertFalse(literal.contains("普通手作"));
+    String selected = mvc.perform(get("/workshops").session(participant).param("selected", "2"))
+        .andExpect(status().isOk()).andReturn()
+        .getResponse().getContentAsString(StandardCharsets.UTF_8);
+    assertTrue(selected.contains("简介：普通手作"));
+    assertFalse(selected.contains("简介：100%体验"));
     for (int i = 3; i <= 10; i++) {
       activity(i, 2, "加页" + i, "PUBLISHED", null, null);
       String day = String.format("2026-11-%02d", 10 + i);
@@ -164,6 +173,7 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     assertFalse(first.contains("加页10"));
     assertTrue(second.contains("加页10"));
     assertFalse(second.contains("100%体验"));
+    assertTrue(search("", "", "", "", "999").contains("加页10"));
   }
 
   private String search(String keyword, String from, String to, String availability)

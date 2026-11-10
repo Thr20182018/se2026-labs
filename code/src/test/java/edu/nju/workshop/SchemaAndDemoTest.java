@@ -66,7 +66,7 @@ class SchemaAndDemoTest extends WorkshopTestBase {
 
   @Test
   void demoSeedLoadsAndPublicQueryUsesPublishedContent() {
-    SqlScripts.execute(jdbc, "db/V002__demo.sql");
+    executeScript("db/V002__demo.sql");
     String hash = jdbc.queryForObject(
         "SELECT password_hash FROM users WHERE account = 'lin_zy'", String.class);
     assertTrue(new BCryptPasswordEncoder().matches(PASSWORD, hash));

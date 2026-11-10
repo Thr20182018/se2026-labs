@@ -143,6 +143,7 @@ button, input, select { font: inherit; }
 .filter-actions a { color: var(--muted); }
 .board { display: grid; grid-template-columns: 1.6fr .9fr; gap: 18px; }
 .session {
+  text-decoration: none;
   display: grid;
   grid-template-columns: 72px 1fr auto;
   gap: 14px;
@@ -153,6 +154,7 @@ button, input, select { font: inherit; }
   margin-bottom: 12px;
 }
 .session.is-selected { border-color: #d7b4ea; background: #fcf8fe; }
+.session:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
 .day {
   background: var(--soft);
   border-radius: 12px;
