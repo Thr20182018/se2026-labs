@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -174,6 +176,26 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     assertTrue(second.contains("加页10"));
     assertFalse(second.contains("100%体验"));
     assertTrue(search("", "", "", "", "999").contains("加页10"));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "2026-11-14 14:00:00, 2026-11-14 16:00:00,"
+          + "11月14日 14:00–16:00, 11月14日（周六）14:00–16:00",
+      "2026-11-14 14:00:00, 2026-11-15 16:00:00,"
+          + "11月14日 14:00–11月15日 16:00, 11月14日（周六）14:00–11月15日 16:00",
+      "2026-11-30 23:00:00, 2026-12-01 01:00:00,"
+          + "11月30日 23:00–12月1日 01:00, 11月30日（周一）23:00–12月1日 01:00",
+      "2026-12-31 23:00:00, 2027-01-01 01:00:00,"
+          + "2026年12月31日 23:00–2027年1月1日 01:00, 2026年12月31日（周四）23:00–2027年1月1日 01:00"
+  })
+  void sessionTimesIncludeEndDate(String start, String end, String listTime, String detailTime)
+      throws Exception {
+    activity(1, 2, "时间展示", "PUBLISHED", null, null);
+    session(1, 1, start, end, "2026-11-10 18:00:00", 8, "PUBLISHED");
+    String page = search("时间展示", "", "", "");
+    assertTrue(page.contains(listTime + " · 仙林校区"), "列表应显示完整时间范围");
+    assertTrue(page.contains(detailTime), "详情应显示完整时间范围");
   }
 
   private String search(String keyword, String from, String to, String availability)

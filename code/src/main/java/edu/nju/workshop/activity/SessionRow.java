@@ -1,6 +1,7 @@
 package edu.nju.workshop.activity;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public record SessionRow(
     long id,
@@ -35,7 +36,12 @@ public record SessionRow(
   }
 
   public String clockRange() {
-    return clock(start) + "–" + clock(end);
+    String endDate = start.toLocalDate().equals(end.toLocalDate()) ? "" : date(end) + " ";
+    return clock(start) + "–" + endDate + clock(end);
+  }
+
+  public String startDateLabel() {
+    return date(start);
   }
 
   public String deadlineLabel() {
@@ -43,8 +49,7 @@ public record SessionRow(
   }
 
   public String detailTime() {
-    return start.getMonthValue() + "月" + start.getDayOfMonth() + "日（" + weekdayLabel() + "）"
-        + clockRange();
+    return startDateLabel() + "（" + weekdayLabel() + "）" + clockRange();
   }
 
   public String actionLabel() {
@@ -55,6 +60,11 @@ public record SessionRow(
       case CANCELLED -> "场次已取消";
       default -> throw new IllegalStateException("未知报名情况");
     };
+  }
+
+  private String date(LocalDateTime time) {
+    String pattern = start.getYear() == end.getYear() ? "M月d日" : "yyyy年M月d日";
+    return time.format(DateTimeFormatter.ofPattern(pattern));
   }
 
   private static String clock(LocalDateTime time) {

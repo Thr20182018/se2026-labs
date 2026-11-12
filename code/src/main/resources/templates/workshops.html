@@ -59,7 +59,7 @@
             </div>
             <div>
               <h3 th:text="${row.name}">活动名称</h3>
-              <p th:text="${row.monthLabel} + ${row.dayOfMonth} + '日 ' + ${row.clockRange}
+              <p th:text="${row.startDateLabel} + ' ' + ${row.clockRange}
                   + ' · ' + ${row.location}">时间 · 地点</p>
               <p class="muted" th:text="'报名截止 ' + ${row.deadlineLabel}">截止</p>
             </div>

@@ -5,22 +5,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.net.CookieManager;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = "server.address=127.0.0.1")
 class AuthHttpTest extends WorkshopTestBase {
+
+  @LocalServerPort
+  int port;
 
   @BeforeEach
   void accounts() {
@@ -96,19 +111,46 @@ class AuthHttpTest extends WorkshopTestBase {
         .andExpect(redirectedUrlPattern("**/login"));
   }
 
-  @Test
-  void logoutRequiresCsrfAndEndsTheSession() throws Exception {
-    MockHttpSession session = login("lin_zy", "PARTICIPANT");
-    mvc.perform(post("/logout").session(session))
-        .andExpect(status().isForbidden())
-        .andExpect(forwardedUrl("/access-denied"));
-    mvc.perform(post("/logout").session(session).with(csrf()))
-        .andExpect(redirectedUrl("/login?logout"))
-        .andExpect(unauthenticated());
-    mvc.perform(get("/workshops").session(session))
-        .andExpect(status().is3xxRedirection());
-    mvc.perform(get("/login").param("logout", ""))
-        .andExpect(content().string(containsString("您已退出登录")));
+  @ParameterizedTest
+  @ValueSource(strings = {"", "_csrf=invalid"})
+  void logoutRequiresCsrfAndEndsTheSession(String rejectedForm) throws Exception {
+    // 真实 HTTP 请求由容器完成 POST 转发，断言最终状态及页面。
+    try (HttpClient client = HttpClient.newBuilder().cookieHandler(new CookieManager()).build()) {
+      String loginPage = request(client, "/login", null).body();
+      HttpResponse<String> login = request(client, "/login",
+          "username=lin_zy&password=" + PASSWORD + "&_csrf=" + csrfToken(loginPage));
+      assertEquals(302, login.statusCode());
+      assertTrue(login.headers().firstValue("Location").orElseThrow().endsWith("/workshops"));
+      HttpResponse<String> denied = request(client, "/logout", rejectedForm);
+      assertEquals(403, denied.statusCode());
+      assertTrue(denied.body().contains("无权访问"), denied.body());
+      HttpResponse<String> workshops = request(client, "/workshops", null);
+      assertEquals(200, workshops.statusCode());
+      HttpResponse<String> logout = request(
+          client, "/logout", "_csrf=" + csrfToken(workshops.body()));
+      assertEquals(302, logout.statusCode());
+      assertTrue(logout.headers().firstValue("Location").orElseThrow().endsWith("/login?logout"));
+      assertEquals(302, request(client, "/workshops", null).statusCode());
+      assertTrue(request(client, "/login?logout", null).body().contains("您已退出登录"));
+    }
+  }
+
+  private HttpResponse<String> request(HttpClient client, String path, String form)
+      throws Exception {
+    HttpRequest.Builder request = HttpRequest
+        .newBuilder(URI.create("http://127.0.0.1:" + port + path))
+        .timeout(Duration.ofSeconds(10));
+    if (form != null) {
+      request.header("Content-Type", "application/x-www-form-urlencoded")
+          .POST(HttpRequest.BodyPublishers.ofString(form));
+    }
+    return client.send(request.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+  }
+
+  private static String csrfToken(String page) {
+    var token = Pattern.compile("name=\"_csrf\"[^>]*value=\"([^\"]+)\"").matcher(page);
+    assertTrue(token.find(), "页面缺少 CSRF token");
+    return URLEncoder.encode(token.group(1), StandardCharsets.UTF_8);
   }
 
   private void denied(MockHttpSession session, String path, String secret) throws Exception {
