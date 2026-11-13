@@ -1,6 +1,5 @@
 .workshops-page .sheet {
   --serif: Georgia, STZhongsong, "华文中宋", "Noto Serif SC", "Songti SC", SimSun, serif;
-  font-family: SimSun, "宋体", "Songti SC", STSong, serif;
 }
 .workshops-page h1, .workshops-page h2,
 .session-title, .session-detail-head h3 { font-family: var(--serif); }
