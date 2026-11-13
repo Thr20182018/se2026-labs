@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>活动管理 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('manage')}"></div>
+  <main class="sheet management">
+    <div class="page-head"><h1>活动管理</h1><span class="free">我的工作坊</span></div>
+    <p class="muted">管理活动与场次，查看审核和发布状态。</p>
+    <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
+    <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <div class="management-grid">
+      <section class="management-card">
+        <h2>我的活动 <small th:text="'共 ' + ${#lists.size(activities)} + ' 个'">共 0 个</small></h2>
+        <p class="empty" th:if="${#lists.isEmpty(activities)}">还没有活动，从创建第一个工作坊开始。</p>
+        <div class="activity-row" th:each="item : ${activities}">
+          <div>
+            <a class="activity-title" th:href="@{/organizer/activities/{id}(id=${item.id})}"
+                th:text="${item.name}">活动名称</a>
+            <p class="muted" th:text="${item.sessionCount} + ' 个场次'">场次数量</p>
+          </div>
+          <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">草稿</span>
+        </div>
+      </section>
+      <section class="management-card">
+        <h2>创建活动</h2>
+        <form class="management-form" th:action="@{/organizer/activities}" method="post">
+          <label>活动名称<input name="name" maxlength="200" required th:value="${draft.name}"></label>
+          <label>活动简介<textarea name="description" rows="6" maxlength="10000" required
+              th:text="${draft.description}"></textarea></label>
+          <button type="submit">创建草稿</button>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

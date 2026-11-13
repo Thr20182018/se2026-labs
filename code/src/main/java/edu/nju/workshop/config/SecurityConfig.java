@@ -1,5 +1,6 @@
 package edu.nju.workshop.config;
 
+import edu.nju.workshop.identity.AuditedAccessDeniedHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,7 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http,
+      AuditedAccessDeniedHandler deniedHandler) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/error").permitAll()
@@ -29,7 +31,7 @@ public class SecurityConfig {
             .logoutUrl("/logout")
             .logoutSuccessUrl("/login?logout")
             .invalidateHttpSession(true))
-        .exceptionHandling(denied -> denied.accessDeniedPage("/access-denied"));
+        .exceptionHandling(denied -> denied.accessDeniedHandler(deniedHandler));
     return http.build();
   }
 

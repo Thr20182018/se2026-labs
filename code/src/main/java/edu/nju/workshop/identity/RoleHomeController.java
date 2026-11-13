@@ -13,16 +13,6 @@ public class RoleHomeController {
     return page(model, "我的报名", "mine");
   }
 
-  @GetMapping("/organizer/activities")
-  public String activities(Model model) {
-    return page(model, "活动管理", "manage");
-  }
-
-  @GetMapping("/admin/reviews")
-  public String reviews(Model model) {
-    return page(model, "审核管理", "review");
-  }
-
   private String page(Model model, String title, String nav) {
     model.addAttribute("title", title);
     model.addAttribute("nav", nav);

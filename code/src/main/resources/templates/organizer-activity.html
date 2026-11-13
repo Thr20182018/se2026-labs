@@ -3,15 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>活动 · 校园工作坊</title>
+  <title th:text="${activity.name} + ' · 活动管理'">活动管理</title>
   <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
 </head>
 <body>
   <div th:replace="~{fragments/header :: bar('manage')}"></div>
-  <main class="sheet narrow">
-    <h1 th:text="${activityName}">活动名称</h1>
-    <p>当前账号负责此活动。编辑与审核尚未开放。</p>
-    <a class="back" href="/organizer/activities">返回活动管理</a>
+  <main class="sheet management">
+    <a class="management-back" href="/organizer/activities">← 活动管理</a>
+    <div class="page-head">
+      <h1 th:text="${activity.name}">活动名称</h1>
+      <span class="status" th:classappend="${activity.status.name()}" th:text="${activity.status.label}">草稿</span>
+    </div>
+    <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
+    <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <section class="management-card">
+      <h2>活动信息</h2>
+      <form class="management-form" th:if="${activity.editable()}"
+          th:action="@{/organizer/activities/{id}(id=${activity.id})}" method="post">
+        <label>活动名称<input name="name" maxlength="200" required th:value="${draft.name}"></label>
+        <label>活动简介<textarea name="description" rows="4" maxlength="10000" required
+            th:text="${draft.description}"></textarea></label>
+        <div class="management-actions"><button type="submit">保存活动信息</button></div>
+      </form>
+      <p class="activity-description" th:unless="${activity.editable()}" th:text="${activity.description}">简介</p>
+    </section>
+    <section class="management-card">
+      <div class="page-head"><h2>活动场次</h2><span class="muted"
+          th:text="'共 ' + ${#lists.size(activity.sessions)} + ' 个场次'">场次数量</span></div>
+      <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">添加至少一个场次后即可提交审核。</p>
+      <details class="session-editor" th:each="item : ${activity.sessions}"
+          th:open="${editSessionId == item.id}">
+        <summary>
+          <span><strong th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')}">开始时间</strong>
+            <span th:text="' → ' + ${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm')}">结束时间</span>
+            <span class="session-place" th:text="${item.location}">地点</span></span>
+          <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">草稿</span>
+        </summary>
+        <form class="management-form session-fields" th:if="${activity.editable()}"
+            th:action="@{/organizer/activities/{id}/sessions/{sid}(id=${activity.id},sid=${item.id})}"
+            th:with="entered=${editSessionId == item.id}" method="post">
+          <label>开始时间<input type="datetime-local" name="startTime" step="1" required
+              th:value="${entered ? sessionDraft.startTime : #temporals.format(item.startTime, 'yyyy-MM-dd''T''HH:mm:ss')}"></label>
+          <label>结束时间<input type="datetime-local" name="endTime" step="1" required
+              th:value="${entered ? sessionDraft.endTime : #temporals.format(item.endTime, 'yyyy-MM-dd''T''HH:mm:ss')}"></label>
+          <label>报名截止<input type="datetime-local" name="deadline" step="1" required
+              th:value="${entered ? sessionDraft.deadline : #temporals.format(item.deadline, 'yyyy-MM-dd''T''HH:mm:ss')}"></label>
+          <label>场次容量<input type="number" name="capacity" min="0" max="2147483647" required
+              th:value="${entered ? sessionDraft.capacity : item.capacity}"></label>
+          <label class="full-width">活动地点<input name="location" maxlength="200" required
+              th:value="${entered ? sessionDraft.location : item.location}"></label>
+          <div class="management-actions full-width"><button type="submit">保存场次</button></div>
+        </form>
+        <dl class="review-facts" th:unless="${activity.editable()}">
+          <div><dt>报名截止</dt><dd th:text="${#temporals.format(item.deadline, 'yyyy-MM-dd HH:mm:ss')}">截止</dd></div>
+          <div><dt>场次容量</dt><dd th:text="${item.capacity} + ' 人'">容量</dd></div>
+        </dl>
+      </details>
+    </section>
+    <section class="management-card" th:if="${activity.editable()}">
+      <h2>添加场次</h2>
+      <form class="management-form session-fields"
+          th:action="@{/organizer/activities/{id}/sessions(id=${activity.id})}" method="post">
+        <label>开始时间<input type="datetime-local" name="startTime" step="1" required
+            th:value="${editSessionId == 0 ? sessionDraft.startTime : ''}"></label>
+        <label>结束时间<input type="datetime-local" name="endTime" step="1" required
+            th:value="${editSessionId == 0 ? sessionDraft.endTime : ''}"></label>
+        <label>报名截止<input type="datetime-local" name="deadline" step="1" required
+            th:value="${editSessionId == 0 ? sessionDraft.deadline : ''}"></label>
+        <label>场次容量<input type="number" name="capacity" min="0" max="2147483647" required
+            th:value="${editSessionId == 0 ? sessionDraft.capacity : ''}"></label>
+        <label class="full-width">活动地点<input name="location" maxlength="200" required
+            th:value="${editSessionId == 0 ? sessionDraft.location : ''}"></label>
+        <div class="management-actions full-width"><button type="submit">添加场次</button></div>
+      </form>
+    </section>
+    <form class="submit-review" th:if="${activity.editable()}"
+        th:action="@{/organizer/activities/{id}/submit(id=${activity.id})}" method="post">
+      <span class="muted">确认已保存的活动与场次信息后，提交管理员审核。</span>
+      <button type="submit" th:disabled="${#lists.isEmpty(activity.sessions)}">提交审核</button>
+    </form>
   </main>
 </body>
 </html>

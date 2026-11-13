@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>审核管理 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('review')}"></div>
+  <main class="sheet management">
+    <div class="page-head"><h1>审核管理</h1><span class="free"
+        th:text="${#lists.size(activities)} + ' 个待审核活动'">待审核数量</span></div>
+    <p class="muted">核对活动内容与场次安排，审核通过后自动发布。</p>
+    <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
+    <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <section class="management-card">
+      <h2>待审核活动</h2>
+      <p class="empty" th:if="${#lists.isEmpty(activities)}">当前没有待审核活动。</p>
+      <div class="activity-row" th:each="item : ${activities}">
+        <div>
+          <a class="activity-title" th:href="@{/admin/reviews/{id}(id=${item.id})}"
+              th:text="${item.name}">活动名称</a>
+          <p class="muted" th:text="${item.organizerName} + ' · ' + ${item.sessionCount} + ' 个场次'">组织者与场次</p>
+        </div>
+        <span class="status PENDING" th:text="${item.status.label}">待审核</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

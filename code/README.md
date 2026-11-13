@@ -28,3 +28,7 @@ exit;
 Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify` 运行 JUnit 和 Checkstyle，测试只在校验通过的 `workshop_test` 库重建表。
 
 查询页以行展示活动名称、时间、地点和报名状态。点击场次原地展开详情，再次点击收起，切换场次时自动关闭上一项；支持 Enter、空格和 Esc 操作。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。
+
+组织者 `su_qing` 在“活动管理”创建草稿、添加多个场次并提交审核；管理员 `he_qm` 在“审核管理”通过或驳回。通过后，参与者 `lin_zy` 可在查询页看到场次；驳回后，组织者可以修改并重新提交。三个演示账号均使用上述演示密码。
+
+阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`，完整回归场景见 `ActivityPublishingHttpTest`。

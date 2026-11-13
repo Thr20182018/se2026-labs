@@ -1,4 +1,6 @@
 :root {
+  --font-heading: Georgia, STZhongsong, "华文中宋", "Noto Serif SC", "Songti SC", SimSun, serif;
+  --font-body: "WenQuanYi Micro Hei", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   --purple: #6b2d91;
   --purple-deep: #542474;
   --ink: #1d2433;
@@ -18,13 +20,14 @@
   --cancel: #c01048;
   --cancel-bg: #fff1f3;
   color: var(--ink);
-  font-family: "WenQuanYi Micro Hei", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-body);
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }
 a { color: inherit; }
 button, input, select { font: inherit; }
+h1, h2, h3 { font-family: var(--font-heading); }
 
 .top {
   display: flex;

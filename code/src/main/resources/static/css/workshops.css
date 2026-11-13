@@ -1,8 +1,4 @@
-.workshops-page .sheet {
-  --serif: Georgia, STZhongsong, "华文中宋", "Noto Serif SC", "Songti SC", SimSun, serif;
-}
-.workshops-page h1, .workshops-page h2,
-.session-title, .session-detail-head h3 { font-family: var(--serif); }
+.session-title { font-family: var(--font-heading); }
 .workshops-page .filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, .8fr) auto; }
 .workshops-page .filters label, .workshops-page .filters input,
 .workshops-page .filters select { min-width: 0; width: 100%; }
