@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>发现工作坊 · 校园工作坊</title>
   <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/workshops.css}">
+  <script defer th:src="@{/js/workshops.js}"></script>
 </head>
-<body>
+<body class="workshops-page">
   <div th:replace="~{fragments/header :: bar('workshops')}"></div>
   <main class="sheet">
     <div class="page-head">
@@ -47,49 +49,48 @@
         <span class="muted">按开始时间从近到远</span>
       </div>
       <p class="empty" th:if="${result.total == 0}">暂无符合条件的场次</p>
-      <div class="board" th:if="${result.total > 0}">
+      <div th:if="${result.total > 0}">
+        <div class="session-columns" aria-hidden="true">
+          <span>活动名称</span><span>场次时间</span><span>地点</span><span>报名情况</span>
+        </div>
         <div class="sessions">
-          <a class="session" th:each="row : ${result.rows}"
-              th:href="@{/workshops(keyword=${keyword},dateFrom=${dateFrom},dateTo=${dateTo},availability=${availability},page=${result.page},selected=${row.id})}"
-              th:classappend="${row.id == selected.id} ? ' is-selected' : ''">
-            <div class="day">
-              <span th:text="${row.monthLabel}">11月</span>
-              <strong th:text="${row.dayOfMonth}">14</strong>
-              <span th:text="${row.weekdayLabel}">周六</span>
-            </div>
-            <div>
-              <h3 th:text="${row.name}">活动名称</h3>
-              <p th:text="${row.startDateLabel} + ' ' + ${row.clockRange}
-                  + ' · ' + ${row.location}">时间 · 地点</p>
-              <p class="muted" th:text="'报名截止 ' + ${row.deadlineLabel}">截止</p>
-            </div>
-            <div class="seat">
+          <details class="session" th:each="row : ${result.rows}"
+              th:id="'session-' + ${row.id}" th:open="${row.id == selectedId}">
+            <summary class="session-summary" th:attr="aria-controls='session-content-' + ${row.id}">
+              <strong class="session-title" th:text="${row.name}">活动名称</strong>
+              <span class="session-time" th:text="${row.startDateLabel} + ' ' + ${row.clockRange}">时间</span>
+              <span class="session-location" th:text="${row.location}">地点</span>
               <span class="status" th:classappend="${row.availability.name()}"
                   th:text="${row.availability.label}">可报名</span>
-              <p th:text="'剩余 ' + ${row.remaining} + ' / ' + ${row.capacity} + ' 个名额'">剩余名额</p>
+              <span class="session-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="session-content" th:id="'session-content-' + ${row.id}">
+              <div class="session-detail-head">
+                <h3 th:text="${row.name}">活动名称</h3>
+                <button class="session-close" type="button">收起详情</button>
+              </div>
+              <div class="session-detail-body">
+                <div class="session-about">
+                  <h4>活动简介</h4>
+                  <p th:text="${row.description}">简介</p>
+                </div>
+                <dl class="session-facts">
+                  <div><dt>场次时间</dt><dd th:text="${row.detailTime}">时间</dd></div>
+                  <div><dt>活动地点</dt><dd th:text="${row.location}">地点</dd></div>
+                  <div><dt>报名截止</dt><dd th:text="${row.deadlineLabel}">截止</dd></div>
+                  <div><dt>名额</dt>
+                    <dd th:text="'共 ' + ${row.capacity} + ' 个，剩余 ' + ${row.remaining}">名额</dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="session-detail-bottom">
+                <span class="free">免费线下活动</span>
+                <button class="session-action" type="button" disabled
+                    th:text="${row.actionLabel}">报名此场次</button>
+              </div>
             </div>
-          </a>
+          </details>
         </div>
-        <aside class="detail" th:with="row=${selected}">
-          <div class="detail-top">
-            <span>场次详情</span>
-            <span class="free">免费</span>
-          </div>
-          <div class="detail-banner">
-            <strong th:text="${row.name}">活动名称</strong>
-          </div>
-          <p th:text="${row.description}">简介</p>
-          <ul>
-            <li><span>时间</span><strong th:text="${row.detailTime}">时间</strong></li>
-            <li><span>地点</span><strong th:text="${row.location}">地点</strong></li>
-            <li><span>截止</span><strong th:text="${row.deadlineLabel}">截止</strong></li>
-            <li><span>名额</span>
-              <strong th:text="'共 ' + ${row.capacity} + ' 个，剩余 ' + ${row.remaining}">名额</strong>
-            </li>
-            <li><span>状态</span><strong th:text="${row.availability.label}">状态</strong></li>
-          </ul>
-          <button type="button" disabled th:text="${row.actionLabel}">报名此场次</button>
-        </aside>
       </div>
       <nav class="pager" th:if="${result.pages > 1}">
         <a th:if="${result.page > 1}"

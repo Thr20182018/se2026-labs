@@ -33,9 +33,7 @@ public class ActivityQueryController {
       ActivityQuery query = ActivityQuery.parse(keyword, dateFrom, dateTo, availability, page);
       QueryPage result = service.search(query, PAGE_SIZE);
       model.addAttribute("result", result);
-      model.addAttribute("selected", result.rows().stream()
-          .filter(row -> row.id() == selected).findFirst()
-          .orElse(result.rows().isEmpty() ? null : result.rows().getFirst()));
+      model.addAttribute("selectedId", selected);
     } catch (IllegalArgumentException ex) {
       model.addAttribute("message", ex.getMessage());
     }
