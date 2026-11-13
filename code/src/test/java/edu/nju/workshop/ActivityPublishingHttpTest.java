@@ -13,6 +13,7 @@ import edu.nju.workshop.activity.ActivityManagementService;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -323,6 +324,30 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
         "SELECT start_time FROM sessions WHERE activity_id = ?", LocalDateTime.class, id));
     assertEquals(LocalDateTime.of(2026, 11, 15, 14, 0, 1), jdbc.queryForObject(
         "SELECT end_time FROM sessions WHERE activity_id = ?", LocalDateTime.class, id));
+  }
+
+  @Test
+  void beijingSessionTimesRemainUnchangedWhenJvmUsesUtc() throws Exception {
+    TimeZone original = TimeZone.getDefault();
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+      long id = createActivity("跨时区读取校验");
+      long sessionId = addSession(id, "2026-11-15");
+      var stored = management.ownedActivity(2, id).sessions().getFirst();
+      assertEquals(LocalDateTime.of(2026, 11, 15, 14, 0), stored.startTime());
+      assertEquals(LocalDateTime.of(2026, 11, 15, 16, 0), stored.endTime());
+      assertEquals(LocalDateTime.of(2026, 11, 15, 14, 0), stored.deadline());
+      clock.setBeijing(LocalDateTime.of(2026, 11, 15, 10, 0));
+      mvc.perform(sessionForm(organizer, activityPath(id) + "/sessions/" + sessionId,
+              "2026-11-15T14:00", "2026-11-15T16:00", "2026-11-15T14:00", "10", "校准教室"))
+          .andExpect(status().is3xxRedirection());
+      submit(id);
+      assertTrue(body(admin, "/admin/reviews/" + id).contains("2026-11-15 14:00"));
+      review(id, "approve");
+      assertTrue(body(participant, "/workshops").contains("14:00–16:00"));
+    } finally {
+      TimeZone.setDefault(original);
+    }
   }
 
   @Test

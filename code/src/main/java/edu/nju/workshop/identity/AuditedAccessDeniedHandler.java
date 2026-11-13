@@ -15,14 +15,15 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.NumberUtils;
 
 /** 记录进入业务 Controller 之前被安全过滤器拒绝的关键写操作。 */
 @Component
 public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
 
   private static final Pattern ORGANIZER = Pattern.compile(
-      "/organizer/activities(?:/(\\d+)(?:/(submit)|/(sessions)(?:/(\\d+))?)?)?");
-  private static final Pattern REVIEW = Pattern.compile("/admin/reviews/(\\d+)");
+      "/organizer/activities(?:/([^/]+)(?:/(submit)|/(sessions)(?:/([^/]+))?)?)?");
+  private static final Pattern REVIEW = Pattern.compile("/admin/reviews/([^/]+)");
   private final OperationLogService logs;
   private final AccessDeniedHandlerImpl delegate = new AccessDeniedHandlerImpl();
 
@@ -88,7 +89,7 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
 
   private static Long id(String raw) {
     try {
-      return raw == null ? null : Long.valueOf(raw);
+      return raw == null ? null : NumberUtils.parseNumber(raw, Long.class);
     } catch (NumberFormatException ex) {
       return null;
     }

@@ -3,6 +3,7 @@ package edu.nju.workshop.activity;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -118,9 +119,9 @@ public class ActivityManagementRepository {
   }
 
   private ManagedSession session(ResultSet rs) throws SQLException {
-    return new ManagedSession(rs.getLong("id"), rs.getTimestamp("start_time").toLocalDateTime(),
-        rs.getTimestamp("end_time").toLocalDateTime(),
-        rs.getTimestamp("registration_deadline").toLocalDateTime(), rs.getString("location"),
+    return new ManagedSession(rs.getLong("id"), rs.getObject("start_time", LocalDateTime.class),
+        rs.getObject("end_time", LocalDateTime.class),
+        rs.getObject("registration_deadline", LocalDateTime.class), rs.getString("location"),
         rs.getInt("capacity"), PublicationStatus.valueOf(rs.getString("publication_status")));
   }
 }

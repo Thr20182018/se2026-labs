@@ -10,8 +10,13 @@ import org.junit.jupiter.api.Test;
 
 class AccessDeniedAuditHttpTest extends WorkshopTestBase {
 
+  private static final String[][] IDS = {
+      {"12", "13", "34"}, {"%31%32", "%31%33", "%33%34"},
+      {"+12", "+13", "+34"}, {"%2B12", "%2B13", "%2B34"}, {"0xC", "0xD", "0x22"}
+  };
+
   @Test
-  void plainAndEncodedRoutesAuditRoleAndCsrfRejectionsWithoutBusinessChanges() throws Exception {
+  void equivalentLongIdsAuditRejectionsAndReachAuthorizedBusinessOperations() throws Exception {
     user(1, "lin_zy", "林知远", "PARTICIPANT");
     user(2, "su_qing", "苏清和", "ORGANIZER");
     user(3, "he_qm", "何启明", "ADMIN");
@@ -33,14 +38,16 @@ class AccessDeniedAuditHttpTest extends WorkshopTestBase {
         {"/organizer/activities/12/sessions", "CREATE_SESSION", "12", null, ""},
         {"/organizer/activities/12/sessions/34", "UPDATE_SESSION", "12", "34", ""},
         {"/admin/reviews/13", "APPROVE_REVIEW", "13", null, "approve"},
-        {"/admin/reviews/13", "REJECT_REVIEW", "13", null, "reject"}
+        {"/admin/reviews/13", "REJECT_REVIEW", "13", null, "reject"},
+        {"/organizer/activities/not-a-number", "UPDATE_ACTIVITY", null, null, ""}
     };
     int count = 0;
     for (String[] route : routes) {
-      for (boolean encoded : new boolean[] {false, true}) {
-        String path = encoded ? route[0].replace("activities", "%61ctivities")
-            .replace("12", "%31%32").replace("13", "%31%33").replace("34", "%33%34")
-            : route[0];
+      for (String[] ids : IDS) {
+        String path = route[0].replace("12", ids[0]).replace("13", ids[1]).replace("34", ids[2]);
+        if (ids[0].startsWith("%")) {
+          path = path.replace("activities", "%61ctivities");
+        }
         boolean review = path.startsWith("/admin/");
         for (boolean missingCsrf : new boolean[] {false, true}) {
           long actorId = missingCsrf ? (review ? 3L : 2L) : 1L;
@@ -69,6 +76,18 @@ class AccessDeniedAuditHttpTest extends WorkshopTestBase {
           assertEquals(sessions, jdbc.queryForList("SELECT * FROM sessions ORDER BY id"));
         }
       }
+    }
+    for (String[] ids : IDS) {
+      String name = "合法编号 " + ids[0];
+      mvc.perform(post(URI.create("/organizer/activities/" + ids[0])).session(organizer)
+              .with(csrf()).param("name", name).param("description", "应保存到编号 12"))
+          .andExpect(status().is3xxRedirection());
+      assertEquals(name, jdbc.queryForObject(
+          "SELECT name FROM activities WHERE id = 12", String.class));
+      var log = jdbc.queryForMap("SELECT * FROM operation_logs ORDER BY id DESC LIMIT 1");
+      assertEquals(12L, log.get("activity_id"));
+      assertEquals("UPDATE_ACTIVITY", log.get("action"));
+      assertEquals("SUCCESS", log.get("result"));
     }
   }
 }
