@@ -15,10 +15,13 @@ mysql --host=127.0.0.1 --port=3306 --user=workshop_dev --password workshop_dev
 ```sql
 SOURCE src/main/resources/db/V001__schema.sql;
 SOURCE src/main/resources/db/V002__demo.sql;
+SOURCE src/main/resources/db/V003__review_version.sql;
 exit;
 ```
 
 演示账号见 `V002__demo.sql`，密码都是 `Demo-2026`。库里只保存 BCrypt 哈希。
+
+已有 T1/T2-A 数据库升级时，只需执行一次 `V003__review_version.sql`，为已有活动添加审核版本，保留现有数据。
 
 ```powershell
 .\mvnw.cmd verify

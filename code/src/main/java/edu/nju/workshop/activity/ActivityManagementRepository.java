@@ -51,7 +51,8 @@ public class ActivityManagementRepository {
         """ + locking, (rs, row) -> new ManagedActivity(
             rs.getLong("id"), rs.getString("name"), rs.getString("description"),
             rs.getLong("organizer_id"), rs.getString("owner_name"),
-            PublicationStatus.valueOf(rs.getString("publication_status")), List.of()), id);
+            PublicationStatus.valueOf(rs.getString("publication_status")),
+            rs.getLong("review_version"), List.of()), id);
     if (rows.isEmpty()) {
       return Optional.empty();
     }
@@ -60,7 +61,8 @@ public class ActivityManagementRepository {
         "SELECT * FROM sessions WHERE activity_id = ? ORDER BY id" + locking,
         (rs, row) -> session(rs), id);
     return Optional.of(new ManagedActivity(activity.id(), activity.name(), activity.description(),
-        activity.organizerId(), activity.organizerName(), activity.status(), sessions));
+        activity.organizerId(), activity.organizerName(), activity.status(),
+        activity.reviewVersion(), sessions));
   }
 
   long create(long actorId, ActivityDraft draft) {
@@ -90,6 +92,11 @@ public class ActivityManagementRepository {
           location = ?, capacity = ? WHERE id = ? AND activity_id = ?
         """, session.startTime(), session.endTime(), session.deadline(), session.location(),
         session.capacity(), session.id(), activityId);
+  }
+
+  void submitForReview(long id) {
+    jdbc.update("UPDATE activities SET review_version = review_version + 1 WHERE id = ?", id);
+    setStatus(id, PublicationStatus.PENDING);
   }
 
   void setStatus(long id, PublicationStatus status) {

@@ -40,6 +40,7 @@
     </section>
     <form class="management-actions review-actions" th:if="${activity.status.name() == 'PENDING'}"
         th:action="@{/admin/reviews/{id}(id=${activity.id})}" method="post">
+      <input type="hidden" name="reviewVersion" th:value="${activity.reviewVersion}">
       <button class="secondary" type="submit" name="decision" value="reject">驳回</button>
       <button type="submit" name="decision" value="approve">审核通过并发布</button>
     </form>

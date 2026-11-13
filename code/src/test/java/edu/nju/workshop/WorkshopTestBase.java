@@ -61,6 +61,7 @@ abstract class WorkshopTestBase {
       jdbc.execute("DROP TABLE IF EXISTS " + table);
     }
     executeScript("db/V001__schema.sql");
+    executeScript("db/V003__review_version.sql");
   }
 
   void executeScript(String classpath) {

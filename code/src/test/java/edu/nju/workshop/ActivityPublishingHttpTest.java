@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
     assertState(id, "PENDING", 2);
     assertTrue(body(admin, "/admin/reviews").contains("蓝晒校内工作坊"));
     String reviewPage = body(admin, "/admin/reviews/" + id);
+    assertTrue(reviewPage.contains("name=\"reviewVersion\" value=\"1\""));
     assertTrue(reviewPage.contains("2026-11-16") || reviewPage.contains("11月16日"));
     assertFalse(body(participant, "/workshops").contains("蓝晒校内工作坊"));
     review(id, "approve");
@@ -265,6 +267,41 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   }
 
   @Test
+  void oldReviewPageCannotDecideAResubmittedApplication() throws Exception {
+    long id = createActivity("第一轮审核内容");
+    addSession(id, "2026-11-15");
+    submit(id);
+    MockHttpSession secondAdmin = login("lu_xi", "ADMIN");
+    var versionField = Pattern.compile("name=\"reviewVersion\" value=\"(\\d+)\"")
+        .matcher(body(secondAdmin, "/admin/reviews/" + id));
+    assertTrue(versionField.find());
+    String oldVersion = versionField.group(1);
+    review(id, "reject");
+    mvc.perform(write(organizer, activityPath(id)).param("name", "第二轮审核内容")
+            .param("description", "修改后的内容需要重新审核"))
+        .andExpect(status().is3xxRedirection());
+    submit(id);
+    assertEquals(Long.parseLong(oldVersion) + 1, reviewVersion(id));
+    for (String decision : List.of("approve", "reject")) {
+      MvcResult result = mvc.perform(write(secondAdmin, "/admin/reviews/" + id)
+              .param("decision", decision).param("reviewVersion", oldVersion))
+          .andExpect(status().isConflict()).andReturn();
+      assertTrue(html(result).contains("审核申请已更新"));
+      assertTrue(html(result).contains("第二轮审核内容"));
+      assertState(id, "PENDING", 1);
+    }
+    mvc.perform(write(secondAdmin, "/admin/reviews/" + id).param("decision", "approve"))
+        .andExpect(status().isConflict());
+    assertEquals(0, logs("PUBLISH_ACTIVITY", "SUCCESS"));
+    assertEquals(2, logs("APPROVE_REVIEW", "FAILURE"));
+    assertEquals(1, logs("REJECT_REVIEW", "FAILURE"));
+    assertFalse(body(participant, "/workshops").contains("第二轮审核内容"));
+    review(id, "approve");
+    assertState(id, "PUBLISHED", 1);
+    assertTrue(body(participant, "/workshops").contains("第二轮审核内容"));
+  }
+
+  @Test
   void databaseDateRangeAndSecondPrecisionAreValidatedBeforeSaving() throws Exception {
     long id = createActivity("时间精度校验");
     String[][] invalid = {
@@ -313,7 +350,8 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
     jdbc.execute("ALTER TABLE operation_logs ADD CONSTRAINT test_reject_publication"
         + " CHECK (action <> 'PUBLISH_ACTIVITY')");
     try {
-      assertThrows(RuntimeException.class, () -> management.review(4, id, "approve"));
+      assertThrows(RuntimeException.class,
+          () -> management.review(4, id, "approve", reviewVersion(id)));
     } finally {
       jdbc.execute("ALTER TABLE operation_logs DROP CHECK test_reject_publication");
     }
@@ -359,7 +397,8 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
       CountDownLatch ready, CountDownLatch start) throws Exception {
     ready.countDown();
     assertTrue(start.await(5, TimeUnit.SECONDS));
-    return mvc.perform(write(reviewer, "/admin/reviews/" + id).param("decision", decision))
+    return mvc.perform(write(reviewer, "/admin/reviews/" + id).param("decision", decision)
+            .param("reviewVersion", Long.toString(reviewVersion(id))))
         .andReturn().getResponse().getStatus();
   }
 
@@ -386,8 +425,14 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   }
 
   private void review(long id, String decision) throws Exception {
-    mvc.perform(write(admin, "/admin/reviews/" + id).param("decision", decision))
+    mvc.perform(write(admin, "/admin/reviews/" + id).param("decision", decision)
+            .param("reviewVersion", Long.toString(reviewVersion(id))))
         .andExpect(status().is3xxRedirection());
+  }
+
+  private long reviewVersion(long id) {
+    return jdbc.queryForObject(
+        "SELECT review_version FROM activities WHERE id = ?", Long.class, id);
   }
 
   private MockHttpServletRequestBuilder write(MockHttpSession user, String path) {

@@ -127,9 +127,10 @@ public class ActivityManagementController {
 
   @PostMapping("/admin/reviews/{id}")
   public String decide(@PathVariable long id, @RequestParam(defaultValue = "") String decision,
-      Model model, HttpServletResponse response, RedirectAttributes redirect) {
+      @RequestParam(defaultValue = "-1") long reviewVersion, Model model,
+      HttpServletResponse response, RedirectAttributes redirect) {
     try {
-      service.review(actor(), id, decision);
+      service.review(actor(), id, decision, reviewVersion);
       redirect.addFlashAttribute("notice", "approve".equals(decision) ? "审核通过，活动已发布。" : "已驳回申请。");
       return "redirect:/admin/reviews/" + id;
     } catch (ActivityException ex) {

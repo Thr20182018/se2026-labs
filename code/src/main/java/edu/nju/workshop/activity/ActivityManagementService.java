@@ -112,14 +112,14 @@ public class ActivityManagementService {
         requireEditable(session.status());
         validate(session);
       }
-      repository.setStatus(id, PublicationStatus.PENDING);
+      repository.submitForReview(id);
       logs.success(actorId, id, null, "SUBMIT_REVIEW", activity.status(),
           PublicationStatus.PENDING);
       return null;
     });
   }
 
-  public void review(long adminId, long id, String decision) {
+  public void review(long adminId, long id, String decision, long reviewVersion) {
     String action = "approve".equals(decision) ? "APPROVE_REVIEW"
         : "reject".equals(decision) ? "REJECT_REVIEW" : "REVIEW_ACTIVITY";
     execute(adminId, id, null, action, () -> {
@@ -129,6 +129,10 @@ public class ActivityManagementService {
       }
       if (activity.status() != PublicationStatus.PENDING) {
         throw new ActivityException(409, "该活动已不在待审核状态，请刷新页面");
+      }
+      // 驳回重提会再次进入 PENDING，必须核对这一轮申请，不能只检查状态。
+      if (activity.reviewVersion() != reviewVersion) {
+        throw new ActivityException(409, "审核申请已更新，请刷新页面后重试");
       }
       if (activity.sessions().isEmpty() || activity.sessions().stream()
           .anyMatch(session -> session.status() != PublicationStatus.PENDING)) {
