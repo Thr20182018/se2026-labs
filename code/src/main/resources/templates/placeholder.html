@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · 校园工作坊'">功能</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar(${nav})}"></div>
+  <main class="sheet narrow">
+    <h1 th:text="${title}">标题</h1>
+    <p>此功能将在后续任务开放。</p>
+    <a class="back" href="/workshops">返回活动查询</a>
+  </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: campus-workshop
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      connection-init-sql: SET time_zone = '+08:00'
+  thymeleaf:
+    cache: false
+  web:
+    locale: zh_CN
+    locale-resolver: fixed
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    include-stacktrace: never
+    include-message: never
+    whitelabel:
+      enabled: false

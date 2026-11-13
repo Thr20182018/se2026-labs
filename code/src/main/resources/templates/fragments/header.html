@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+  <header class="top" th:fragment="bar(active)">
+    <a class="brand" href="/workshops">
+      <img th:src="@{/images/mark.svg}" alt="">
+      <span><strong>校园工作坊</strong><small>CAMPUS WORKSHOPS</small></span>
+    </a>
+    <nav class="nav">
+      <a href="/workshops" th:classappend="${active == 'workshops'} ? ' is-active' : ''">发现工作坊</a>
+      <a sec:authorize="hasRole('PARTICIPANT')" href="/me/registrations"
+          th:classappend="${active == 'mine'} ? ' is-active' : ''">我的报名</a>
+      <a sec:authorize="hasRole('ORGANIZER')" href="/organizer/activities"
+          th:classappend="${active == 'manage'} ? ' is-active' : ''">活动管理</a>
+      <a sec:authorize="hasRole('ADMIN')" href="/admin/reviews"
+          th:classappend="${active == 'review'} ? ' is-active' : ''">审核管理</a>
+    </nav>
+    <div class="user">
+      <span class="role" sec:authentication="principal.role.label">角色</span>
+      <span class="name" sec:authentication="principal.displayName">姓名</span>
+      <form th:action="@{/logout}" method="post">
+        <button type="submit">退出</button>
+      </form>
+    </div>
+  </header>
+</body>
+</html>
