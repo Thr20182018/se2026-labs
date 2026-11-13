@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${activity.name} + ' · 活动审核'">活动审核</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('review')}"></div>
+  <main class="sheet management">
+    <a class="management-back" href="/admin/reviews">← 审核管理</a>
+    <div class="page-head">
+      <h1 th:text="${activity.name}">活动名称</h1>
+      <span class="status" th:classappend="${activity.status.name()}" th:text="${activity.status.label}">待审核</span>
+    </div>
+    <p class="muted" th:text="'组织者：' + ${activity.organizerName}">组织者</p>
+    <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
+    <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <section class="management-card">
+      <h2>活动简介</h2>
+      <p class="activity-description" th:text="${activity.description}">简介</p>
+    </section>
+    <section class="management-card">
+      <h2>场次安排 <small th:text="'共 ' + ${#lists.size(activity.sessions)} + ' 个'">场次数量</small></h2>
+      <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">暂无场次。</p>
+      <article class="review-session" th:each="item : ${activity.sessions}">
+        <div class="page-head">
+          <h3 th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')} + ' → '
+              + ${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm')}">场次时间</h3>
+          <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">待审核</span>
+        </div>
+        <dl class="review-facts">
+          <div><dt>活动地点</dt><dd th:text="${item.location}">地点</dd></div>
+          <div><dt>报名截止</dt><dd th:text="${#temporals.format(item.deadline, 'yyyy-MM-dd HH:mm:ss')}">截止</dd></div>
+          <div><dt>场次容量</dt><dd th:text="${item.capacity} + ' 人'">容量</dd></div>
+        </dl>
+      </article>
+    </section>
+    <form class="management-actions review-actions" th:if="${activity.status.name() == 'PENDING'}"
+        th:action="@{/admin/reviews/{id}(id=${activity.id})}" method="post">
+      <input type="hidden" name="reviewVersion" th:value="${activity.reviewVersion}">
+      <button class="secondary" type="submit" name="decision" value="reject">驳回</button>
+      <button type="submit" name="decision" value="approve">审核通过并发布</button>
+    </form>
+  </main>
+</body>
+</html>
