@@ -27,4 +27,4 @@ exit;
 
 Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify` 运行 JUnit 和 Checkstyle，测试只在校验通过的 `workshop_test` 库重建表。
 
-查询页可点击场次切换详情。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。
+查询页以行展示活动名称、时间、地点和报名状态。点击场次原地展开详情，再次点击收起，切换场次时自动关闭上一项；支持 Enter、空格和 Esc 操作。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。

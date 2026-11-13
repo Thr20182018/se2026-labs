@@ -1,5 +1,6 @@
 package edu.nju.workshop;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -8,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -97,7 +100,7 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     registration(6, 6, 1, "WAITLIST_EXPIRED");
     String open = search("", "", "", "open");
     assertTrue(open.contains("容量场次"));
-    assertTrue(open.contains("剩余 2 / 5 个名额"));
+    assertTrue(sessionMarkup(open, 1).contains("共 5 个，剩余 2"));
     assertFalse(open.contains("截止场次"));
     assertFalse(open.contains("取消场次"));
     assertFalse(open.contains("单独取消"));
@@ -149,7 +152,28 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
   }
 
   @Test
-  void literalPercentAndDatabasePaging() throws Exception {
+  void sessionSummariesContainOnlyPrimaryFieldsAndStartCollapsed() throws Exception {
+    activity(1, 2, "蓝晒手作", "PUBLISHED", null, null);
+    activity(2, 2, "声音采集", "PUBLISHED", null, null);
+    session(1, 1, "2026-11-12 14:00:00", "2026-11-12 16:00:00", "2026-11-11 18:00:00",
+        8, "PUBLISHED");
+    session(2, 2, "2026-11-13 14:00:00", "2026-11-13 16:00:00", "2026-11-12 18:00:00",
+        6, "PUBLISHED");
+
+    String page = search("", "", "", "");
+    String first = sessionMarkup(page, 1);
+    String second = sessionMarkup(page, 2);
+    assertEquals("蓝晒手作 11月12日 14:00–16:00 仙林校区 · 逸夫楼 A203 可报名",
+        summaryText(first), "收起行只展示活动名称、时间、地点和报名状态");
+    assertTrue(first.contains("简介：蓝晒手作"), "当前页每个场次都应提供自己的详情");
+    assertTrue(second.contains("简介：声音采集"));
+    assertTrue(first.contains("共 8 个，剩余 8"), "容量信息应保留在详情中");
+    assertFalse(isOpen(first), "首次打开页面时场次应收起");
+    assertFalse(isOpen(second), "其他场次也应默认收起");
+  }
+
+  @Test
+  void literalPercentAndPagingConstrainSelectedSession() throws Exception {
     activity(1, 2, "100%体验", "PUBLISHED", null, null);
     activity(2, 2, "普通手作", "PUBLISHED", null, null);
     session(1, 1, "2026-11-12 09:00:00", "2026-11-12 10:00:00", "2026-11-11 18:00:00",
@@ -163,7 +187,15 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
         .andExpect(status().isOk()).andReturn()
         .getResponse().getContentAsString(StandardCharsets.UTF_8);
     assertTrue(selected.contains("简介：普通手作"));
-    assertFalse(selected.contains("简介：100%体验"));
+    assertTrue(selected.contains("简介：100%体验"));
+    assertTrue(isOpen(sessionMarkup(selected, 2)), "旧详情链接应展开对应场次");
+    assertFalse(isOpen(sessionMarkup(selected, 1)), "旧详情链接只展开一个场次");
+    String filtered = searchSelected("%", "1", "2");
+    assertFalse(filtered.contains("id=\"session-2\""), "筛选排除的场次不能通过 selected 展示");
+    assertFalse(isOpen(sessionMarkup(filtered, 1)), "selected 不匹配时保持收起");
+    String unknown = searchSelected("", "1", "999");
+    assertFalse(isOpen(sessionMarkup(unknown, 1)), "不存在的 selected 不默认展开首条");
+    assertFalse(isOpen(sessionMarkup(unknown, 2)));
     for (int i = 3; i <= 10; i++) {
       activity(i, 2, "加页" + i, "PUBLISHED", null, null);
       String day = String.format("2026-11-%02d", 10 + i);
@@ -176,6 +208,12 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     assertTrue(second.contains("加页10"));
     assertFalse(second.contains("100%体验"));
     assertTrue(search("", "", "", "", "999").contains("加页10"));
+    String anotherPage = searchSelected("", "2", "1");
+    assertFalse(anotherPage.contains("id=\"session-1\""), "其他页场次不能通过 selected 展示");
+    assertFalse(isOpen(sessionMarkup(anotherPage, 9)), "selected 不在当前页时全部收起");
+    assertFalse(isOpen(sessionMarkup(anotherPage, 10)));
+    assertTrue(isOpen(sessionMarkup(searchSelected("", "2", "10"), 10)),
+        "当前页的 selected 场次应正常展开");
   }
 
   @ParameterizedTest
@@ -194,8 +232,34 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     activity(1, 2, "时间展示", "PUBLISHED", null, null);
     session(1, 1, start, end, "2026-11-10 18:00:00", 8, "PUBLISHED");
     String page = search("时间展示", "", "", "");
-    assertTrue(page.contains(listTime + " · 仙林校区"), "列表应显示完整时间范围");
-    assertTrue(page.contains(detailTime), "详情应显示完整时间范围");
+    String row = sessionMarkup(page, 1);
+    assertTrue(summaryText(row).contains(listTime), "列表应显示完整时间范围");
+    assertTrue(row.substring(row.indexOf("</summary>")).contains(detailTime),
+        "详情应显示完整时间范围");
+  }
+
+  private String sessionMarkup(String page, long id) {
+    Matcher match = Pattern.compile("(?s)<details\\b(?=[^>]*\\bid=\"session-" + id
+        + "\")[^>]*>.*?</details>").matcher(page);
+    assertTrue(match.find(), "应存在场次 " + id + " 的详情容器");
+    return match.group();
+  }
+
+  private String summaryText(String row) {
+    Matcher match = Pattern.compile("(?s)<summary\\b[^>]*>(.*?)</summary>").matcher(row);
+    assertTrue(match.find(), "场次应有可展开的摘要行");
+    return match.group(1).replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+  }
+
+  private boolean isOpen(String row) {
+    return Pattern.compile("^<details\\b[^>]*\\sopen(?:\\s|=|>)").matcher(row).find();
+  }
+
+  private String searchSelected(String keyword, String page, String selected) throws Exception {
+    return mvc.perform(get("/workshops").session(participant)
+            .param("keyword", keyword).param("page", page).param("selected", selected))
+        .andExpect(status().isOk()).andReturn()
+        .getResponse().getContentAsString(StandardCharsets.UTF_8);
   }
 
   private String search(String keyword, String from, String to, String availability)

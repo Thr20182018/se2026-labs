@@ -56,7 +56,7 @@ button, input, select { font: inherit; }
   padding: 4px 10px;
   font-size: 12px;
 }
-.user button, .filters button, .panel button, .detail button {
+.user button, .filters button, .panel button {
   background: var(--purple);
   color: #fff;
   border: 0;
@@ -141,57 +141,11 @@ button, input, select { font: inherit; }
 .dates { display: flex; align-items: center; gap: 8px; }
 .filter-actions { align-items: center; }
 .filter-actions a { color: var(--muted); }
-.board { display: grid; grid-template-columns: 1.6fr .9fr; gap: 18px; }
-.session {
-  text-decoration: none;
-  display: grid;
-  grid-template-columns: 72px 1fr auto;
-  gap: 14px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.session.is-selected { border-color: #d7b4ea; background: #fcf8fe; }
-.session:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
-.day {
-  background: var(--soft);
-  border-radius: 12px;
-  text-align: center;
-  padding: 8px 0;
-  color: var(--purple);
-}
-.day strong { display: block; font-size: 22px; }
-.session h3 { margin: 0 0 6px; font-size: 16px; }
-.session p { margin: 0 0 4px; }
-.seat { text-align: right; }
 .status { border-radius: 999px; padding: 4px 8px; font-size: 12px; }
 .status.OPEN { background: var(--ok-bg); color: var(--ok); }
 .status.WAITLIST { background: var(--wait-bg); color: var(--wait); }
 .status.CLOSED { background: var(--closed-bg); color: var(--closed); }
 .status.CANCELLED { background: var(--cancel-bg); color: var(--cancel); }
-.seat p { color: var(--muted); font-size: 13px; }
-.detail {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 16px;
-  height: fit-content;
-}
-.detail-top { display: flex; justify-content: space-between; color: var(--muted); }
-.detail-banner {
-  margin: 12px 0;
-  border-radius: 16px;
-  min-height: 92px;
-  padding: 18px;
-  background: linear-gradient(135deg, #6b2d91, #8d4bb3);
-  color: #fff;
-}
-.detail ul { list-style: none; padding: 0; margin: 0 0 16px; }
-.detail li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; }
-.detail button { width: 100%; }
-.detail button:disabled { background: #c9b4d8; cursor: not-allowed; }
 .empty { background: #fff; border-radius: 16px; padding: 28px; text-align: center; }
 .pager { margin-top: 8px; }
 .pager a { color: var(--purple); }
@@ -204,7 +158,5 @@ button, input, select { font: inherit; }
 @media (max-width: 860px) {
   .top { height: auto; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
   .nav { width: 100%; margin-left: 0; }
-  .login-grid, .board, .filters { grid-template-columns: 1fr; }
-  .session { grid-template-columns: 64px 1fr; }
-  .seat { grid-column: 2; text-align: left; }
+  .login-grid, .filters { grid-template-columns: 1fr; }
 }
