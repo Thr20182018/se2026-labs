@@ -74,13 +74,19 @@
 .review-facts dt { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
 .review-facts dd { margin: 0; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .session-editor .review-facts { margin: 0 0 22px; }
+.session-submit { padding-bottom: 22px; }
+.session-submit .muted { margin-top: 0; font-size: 14px; }
+.revision-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.revision-panel { padding: 18px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.revision-label { color: var(--purple); font-size: 14px; margin: 0 0 12px; }
+.revision-name { font-size: 20px; overflow-wrap: anywhere; margin: 0 0 12px; }
 @media (max-width: 860px) {
   .management-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 @media (max-width: 600px) {
   .management-card { padding: 18px; }
   .management .page-head { flex-wrap: wrap; }
-  .session-fields, .review-facts { grid-template-columns: minmax(0, 1fr); }
+  .session-fields, .review-facts, .revision-comparison { grid-template-columns: minmax(0, 1fr); }
   .session-editor summary { flex-wrap: wrap; gap: 8px; }
   .submit-review { align-items: start; flex-direction: column; }
 }

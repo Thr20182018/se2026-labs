@@ -18,7 +18,7 @@
     <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
     <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
     <section class="management-card">
-      <h2>活动信息</h2>
+      <h2 th:text="${activity.published()} ? '当前公开内容' : '活动信息'">活动信息</h2>
       <form class="management-form" th:if="${activity.editable()}"
           th:action="@{/organizer/activities/{id}(id=${activity.id})}" method="post">
         <label>活动名称<input name="name" maxlength="200" required th:value="${draft.name}"></label>
@@ -26,7 +26,26 @@
             th:text="${draft.description}"></textarea></label>
         <div class="management-actions"><button type="submit">保存活动信息</button></div>
       </form>
+      <h3 class="revision-name" th:if="${activity.published()}" th:text="${activity.name}">当前名称</h3>
       <p class="activity-description" th:unless="${activity.editable()}" th:text="${activity.description}">简介</p>
+    </section>
+    <section class="management-card" th:if="${activity.published()}">
+      <div class="page-head">
+        <h2 th:text="${activity.revisionPending} ? '本次待审内容' : '修改活动内容'">修改活动内容</h2>
+        <span class="status PENDING" th:if="${activity.revisionPending}">内容修改待审核</span>
+      </div>
+      <p class="muted">名称和简介修改通过审核后更新，审核期间继续展示当前公开内容。</p>
+      <div th:if="${activity.revisionPending}">
+        <h3 class="revision-name" th:text="${activity.pendingName}">待审名称</h3>
+        <p class="activity-description" th:text="${activity.pendingDescription}">待审简介</p>
+      </div>
+      <form class="management-form" th:unless="${activity.revisionPending}"
+          th:action="@{/organizer/activities/{id}/revision(id=${activity.id})}" method="post">
+        <label>活动名称<input name="name" maxlength="200" required th:value="${revisionDraft.name}"></label>
+        <label>活动简介<textarea name="description" rows="4" maxlength="10000" required
+            th:text="${revisionDraft.description}"></textarea></label>
+        <div class="management-actions"><button type="submit">提交内容修改审核</button></div>
+      </form>
     </section>
     <section class="management-card">
       <div class="page-head"><h2>活动场次</h2><span class="muted"
@@ -40,7 +59,7 @@
             <span class="session-place" th:text="${item.location}">地点</span></span>
           <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">草稿</span>
         </summary>
-        <form class="management-form session-fields" th:if="${activity.editable()}"
+        <form class="management-form session-fields" th:if="${(activity.editable() or activity.published()) and item.editable()}"
             th:action="@{/organizer/activities/{id}/sessions/{sid}(id=${activity.id},sid=${item.id})}"
             th:with="entered=${editSessionId == item.id}" method="post">
           <label>开始时间<input type="datetime-local" name="startTime" step="1" required
@@ -55,14 +74,21 @@
               th:value="${entered ? sessionDraft.location : item.location}"></label>
           <div class="management-actions full-width"><button type="submit">保存场次</button></div>
         </form>
-        <dl class="review-facts" th:unless="${activity.editable()}">
+        <form class="session-submit" th:if="${activity.published() and item.editable()}"
+            th:action="@{/organizer/activities/{id}/sessions/{sid}/submit(id=${activity.id},sid=${item.id})}"
+            method="post">
+          <p class="muted">保存后提交此场次，审核通过后自动发布。</p>
+          <button type="submit">提交此场次审核</button>
+        </form>
+        <dl class="review-facts" th:unless="${(activity.editable() or activity.published()) and item.editable()}">
           <div><dt>报名截止</dt><dd th:text="${#temporals.format(item.deadline, 'yyyy-MM-dd HH:mm:ss')}">截止</dd></div>
           <div><dt>场次容量</dt><dd th:text="${item.capacity} + ' 人'">容量</dd></div>
         </dl>
       </details>
     </section>
-    <section class="management-card" th:if="${activity.editable()}">
+    <section class="management-card" th:if="${activity.editable() or activity.published()}">
       <h2>添加场次</h2>
+      <p class="muted" th:if="${activity.published()}">新场次保存为草稿，需单独提交审核。</p>
       <form class="management-form session-fields"
           th:action="@{/organizer/activities/{id}/sessions(id=${activity.id})}" method="post">
         <label>开始时间<input type="datetime-local" name="startTime" step="1" required

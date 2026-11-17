@@ -33,6 +33,28 @@ public class ActivityManagementRepository {
     return summaries("a.publication_status = ?", "PENDING");
   }
 
+  List<ReviewRequest> pendingReviews() {
+    return jdbc.query("""
+        SELECT a.id AS activity_id, NULL AS session_id, a.name, u.display_name,
+          'FIRST' AS kind
+        FROM activities a JOIN users u ON u.id = a.organizer_id
+        WHERE a.publication_status = 'PENDING'
+        UNION ALL
+        SELECT a.id, NULL, a.name, u.display_name, 'REVISION'
+        FROM activities a JOIN users u ON u.id = a.organizer_id
+        WHERE a.publication_status = 'PUBLISHED' AND a.revision_pending = 1
+        UNION ALL
+        SELECT a.id, s.id, CONCAT(a.name, ' · ', DATE_FORMAT(s.start_time, '%Y-%m-%d %H:%i')),
+          u.display_name, 'SESSION'
+        FROM activities a JOIN users u ON u.id = a.organizer_id
+          JOIN sessions s ON s.activity_id = a.id
+        WHERE a.publication_status = 'PUBLISHED' AND s.publication_status = 'PENDING'
+        ORDER BY activity_id DESC, kind, session_id
+        """, (rs, row) -> new ReviewRequest(rs.getLong("activity_id"),
+            rs.getObject("session_id", Long.class), rs.getString("name"),
+            rs.getString("display_name"), ReviewKind.valueOf(rs.getString("kind"))));
+  }
+
   private List<ActivitySummary> summaries(String condition, Object value) {
     return jdbc.query("""
         SELECT a.id, a.name, a.publication_status, u.display_name,
@@ -53,7 +75,8 @@ public class ActivityManagementRepository {
             rs.getLong("id"), rs.getString("name"), rs.getString("description"),
             rs.getLong("organizer_id"), rs.getString("owner_name"),
             PublicationStatus.valueOf(rs.getString("publication_status")),
-            rs.getLong("review_version"), List.of()), id);
+            rs.getLong("review_version"), rs.getString("pending_name"),
+            rs.getString("pending_description"), rs.getBoolean("revision_pending"), List.of()), id);
     if (rows.isEmpty()) {
       return Optional.empty();
     }
@@ -63,7 +86,8 @@ public class ActivityManagementRepository {
         (rs, row) -> session(rs), id);
     return Optional.of(new ManagedActivity(activity.id(), activity.name(), activity.description(),
         activity.organizerId(), activity.organizerName(), activity.status(),
-        activity.reviewVersion(), sessions));
+        activity.reviewVersion(), activity.pendingName(), activity.pendingDescription(),
+        activity.revisionPending(), sessions));
   }
 
   long create(long actorId, ActivityDraft draft) {
@@ -106,6 +130,37 @@ public class ActivityManagementRepository {
         status.name(), id);
   }
 
+  void submitRevision(long id, ActivityDraft draft) {
+    jdbc.update("""
+        UPDATE activities SET pending_name = ?, pending_description = ?, revision_pending = 1,
+          review_version = review_version + 1 WHERE id = ?
+        """, draft.name(), draft.description(), id);
+  }
+
+  void decideRevision(long id, boolean approve) {
+    if (approve) {
+      jdbc.update("""
+          UPDATE activities SET name = pending_name, description = pending_description WHERE id = ?
+          """, id);
+    }
+    jdbc.update("""
+        UPDATE activities SET pending_name = NULL, pending_description = NULL, revision_pending = 0
+        WHERE id = ?
+        """, id);
+  }
+
+  void submitSession(long id, long sessionId) {
+    jdbc.update("""
+        UPDATE sessions SET publication_status = 'PENDING', review_version = review_version + 1
+        WHERE id = ? AND activity_id = ?
+        """, sessionId, id);
+  }
+
+  void setSessionStatus(long id, long sessionId, PublicationStatus status) {
+    jdbc.update("UPDATE sessions SET publication_status = ? WHERE id = ? AND activity_id = ?",
+        status.name(), sessionId, id);
+  }
+
   private long insert(String sql, Object... values) {
     GeneratedKeyHolder keys = new GeneratedKeyHolder();
     jdbc.update(connection -> {
@@ -122,6 +177,7 @@ public class ActivityManagementRepository {
     return new ManagedSession(rs.getLong("id"), rs.getObject("start_time", LocalDateTime.class),
         rs.getObject("end_time", LocalDateTime.class),
         rs.getObject("registration_deadline", LocalDateTime.class), rs.getString("location"),
-        rs.getInt("capacity"), PublicationStatus.valueOf(rs.getString("publication_status")));
+        rs.getInt("capacity"), PublicationStatus.valueOf(rs.getString("publication_status")),
+        rs.getLong("review_version"));
   }
 }

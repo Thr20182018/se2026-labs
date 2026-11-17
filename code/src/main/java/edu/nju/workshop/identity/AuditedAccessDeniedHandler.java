@@ -22,8 +22,10 @@ import org.springframework.util.NumberUtils;
 public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
 
   private static final Pattern ORGANIZER = Pattern.compile(
-      "/organizer/activities(?:/([^/]+)(?:/(submit)|/(sessions)(?:/([^/]+))?)?)?");
-  private static final Pattern REVIEW = Pattern.compile("/admin/reviews/([^/]+)");
+      "/organizer/activities(?:/([^/]+)(?:/(submit|revision)"
+          + "|/(sessions)(?:/([^/]+)(?:/(submit))?)?)?)?");
+  private static final Pattern REVIEW = Pattern.compile(
+      "/admin/reviews/([^/]+)(?:/(revision)|/sessions/([^/]+))?");
   private final OperationLogService logs;
   private final AccessDeniedHandlerImpl delegate = new AccessDeniedHandlerImpl();
 
@@ -48,9 +50,13 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
             organizerAction(organizer), reason);
       } else if (review.matches()) {
         String decision = request.getParameter("decision");
-        String action = "approve".equals(decision) ? "APPROVE_REVIEW"
-            : "reject".equals(decision) ? "REJECT_REVIEW" : "REVIEW_ACTIVITY";
-        logs.failure(user.getId(), id(review.group(1)), null, action, reason);
+        String type = review.group(2) != null ? "REVISION"
+            : review.group(3) != null ? "SESSION_REVIEW" : "REVIEW";
+        String fallback = review.group(2) != null ? "REVIEW_REVISION"
+            : review.group(3) != null ? "REVIEW_SESSION" : "REVIEW_ACTIVITY";
+        String action = "approve".equals(decision) ? "APPROVE_" + type
+            : "reject".equals(decision) ? "REJECT_" + type : fallback;
+        logs.failure(user.getId(), id(review.group(1)), id(review.group(3)), action, reason);
       }
     }
     delegate.handle(request, response, exception);
@@ -79,7 +85,10 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
       return "CREATE_ACTIVITY";
     }
     if (route.group(2) != null) {
-      return "SUBMIT_REVIEW";
+      return "revision".equals(route.group(2)) ? "SUBMIT_REVISION" : "SUBMIT_REVIEW";
+    }
+    if (route.group(5) != null) {
+      return "SUBMIT_SESSION_REVIEW";
     }
     if (route.group(3) != null) {
       return route.group(4) == null ? "CREATE_SESSION" : "UPDATE_SESSION";
