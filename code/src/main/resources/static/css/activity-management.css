@@ -83,6 +83,20 @@
 .revision-label { color: var(--purple); font-size: 14px; margin: 0 0 12px; }
 .revision-name { font-size: 20px; overflow-wrap: anywhere; margin: 0 0 12px; }
 .revision-feedback { color: var(--danger); background: var(--danger-bg); padding: 12px 16px; border-radius: 9px; line-height: 1.7; }
+.session-operations { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding-bottom: 22px; }
+.session-operations:not(:has(> *)) { display: none; }
+.management-link { color: var(--purple); text-underline-offset: 4px; }
+.capacity-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 22px; }
+.capacity-form label { display: grid; gap: 7px; font-size: 14px; }
+.capacity-form input { width: 140px; padding: 10px 12px; border: 1px solid #e4dcea; border-radius: 8px; }
+.capacity-form .muted { align-self: center; font-size: 13px; }
+.attendance-scroll { overflow-x: auto; }
+.attendance-table { width: 100%; min-width: 640px; border-collapse: collapse; text-align: left; font-size: 14px; }
+.attendance-table th { color: var(--muted); font-weight: 400; }
+.attendance-table th, .attendance-table td { padding: 16px 12px; border-bottom: 1px solid var(--line); }
+.attendance-table td { overflow-wrap: anywhere; }
+.attendance-table .status.REGISTERED, .attendance-table .status.CHECKED_IN { color: var(--ok); background: var(--ok-bg); }
+.attendance-table .status.ABSENT, .attendance-table .status.WAITLIST_EXPIRED { color: var(--closed); background: var(--closed-bg); }
 @media (max-width: 860px) {
   .management-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }

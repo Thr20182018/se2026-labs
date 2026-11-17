@@ -15,6 +15,8 @@
           th:classappend="${active == 'manage'} ? ' is-active' : ''">活动管理</a>
       <a sec:authorize="hasRole('ADMIN')" href="/admin/reviews"
           th:classappend="${active == 'review'} ? ' is-active' : ''">审核管理</a>
+      <a sec:authorize="hasRole('ADMIN')" href="/admin/activities"
+          th:classappend="${active == 'manage'} ? ' is-active' : ''">活动管理</a>
     </nav>
     <div class="user">
       <span class="role" sec:authentication="principal.role.label">角色</span>

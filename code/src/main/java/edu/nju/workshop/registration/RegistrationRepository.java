@@ -59,6 +59,36 @@ public class RegistrationRepository {
         """, (rs, row) -> registration(rs), actorId, sessionId).stream().findFirst().orElse(null);
   }
 
+  Registration owned(long actorId, long sessionId, long registrationId) {
+    return jdbc.query("""
+        SELECT id, status, waitlist_order FROM registrations
+        WHERE participant_id = ? AND session_id = ? AND id = ?
+        """, (rs, row) -> registration(rs), actorId, sessionId, registrationId)
+        .stream().findFirst().orElse(null);
+  }
+
+  boolean organizerOwns(long actorId, long activityId) {
+    return jdbc.queryForObject("""
+        SELECT COUNT(*) FROM activities a JOIN users u ON u.id = a.organizer_id
+        WHERE a.id = ? AND u.id = ? AND u.role = 'ORGANIZER'
+        """, Integer.class, activityId, actorId) == 1;
+  }
+
+  void resize(long sessionId, int capacity) {
+    jdbc.update("UPDATE sessions SET capacity = ? WHERE id = ?", capacity, sessionId);
+  }
+
+  void setStatus(long registrationId, RegistrationStatus status) {
+    jdbc.update("UPDATE registrations SET status = ? WHERE id = ?", status.name(), registrationId);
+  }
+
+  List<Registration> cancellable(long sessionId) {
+    return jdbc.query("""
+        SELECT id, status, waitlist_order FROM registrations WHERE session_id = ?
+          AND status IN ('REGISTERED', 'WAITLIST', 'CHECKED_IN') ORDER BY id
+        """, (rs, row) -> registration(rs), sessionId);
+  }
+
   Map<Long, Registration> active(long actorId, List<Long> sessionIds) {
     Map<Long, Registration> result = new HashMap<>();
     if (sessionIds.isEmpty()) {
@@ -101,7 +131,8 @@ public class RegistrationRepository {
 
   List<RegistrationRow> mine(long actorId) {
     return jdbc.query("""
-        SELECT r.*, a.name, s.location, s.start_time, s.end_time
+        SELECT r.*, a.name, s.location, s.start_time, s.end_time, s.registration_deadline,
+          s.publication_status AS session_status, a.publication_status AS activity_status
         FROM registrations r JOIN sessions s ON s.id = r.session_id
           JOIN activities a ON a.id = s.activity_id
         WHERE r.participant_id = ? ORDER BY r.registered_at DESC, r.id DESC
@@ -111,7 +142,10 @@ public class RegistrationRepository {
             rs.getObject("end_time", LocalDateTime.class),
             rs.getObject("registered_at", LocalDateTime.class),
             RegistrationStatus.valueOf(rs.getString("status")),
-            rs.getObject("waitlist_order", Integer.class)), actorId);
+            rs.getObject("waitlist_order", Integer.class),
+            rs.getObject("registration_deadline", LocalDateTime.class),
+            "PUBLISHED".equals(rs.getString("session_status"))
+                && "PUBLISHED".equals(rs.getString("activity_status"))), actorId);
   }
 
   List<Long> dueSessions(LocalDateTime now) {

@@ -19,7 +19,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RegistrationRequestFilter extends OncePerRequestFilter {
   public static final String RECEIPT = RegistrationRequestFilter.class.getName() + ".receipt";
-  private static final Pattern TARGET = Pattern.compile("/me/sessions/([^/]+)/registrations");
+  private static final Pattern TARGET = Pattern.compile(
+      "/me/sessions/([^/]+)/registrations(?:/[^/]+/cancel)?"
+          + "|/organizer/activities/[^/]+/sessions/([^/]+)/capacity");
   private final RegistrationAdmission admission;
 
   public RegistrationRequestFilter(RegistrationAdmission admission) {
@@ -55,7 +57,8 @@ public class RegistrationRequestFilter extends OncePerRequestFilter {
     }
     Matcher matcher = TARGET.matcher(path);
     try {
-      return matcher.matches() ? NumberUtils.parseNumber(matcher.group(1), Long.class) : null;
+      return matcher.matches() ? NumberUtils.parseNumber(
+          matcher.group(1) == null ? matcher.group(2) : matcher.group(1), Long.class) : null;
     } catch (NumberFormatException ex) {
       return null;
     }

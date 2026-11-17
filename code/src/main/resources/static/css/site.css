@@ -157,6 +157,28 @@ h1, h2, h3 { font-family: var(--font-heading); }
   margin-top: 12px;
   color: var(--purple);
 }
+.lifecycle-form button {
+  border: 1px solid var(--purple);
+  border-radius: 9px;
+  padding: 10px 18px;
+  color: #fff;
+  background: var(--purple);
+  cursor: pointer;
+}
+.lifecycle-form button:hover { background: var(--purple-deep); }
+.lifecycle-form button:disabled { opacity: .5; cursor: not-allowed; }
+.lifecycle-form .danger-button { color: var(--danger); border-color: #f0b8b4; background: #fff; }
+.lifecycle-form .danger-button:hover { background: var(--danger-bg); }
+.lifecycle-form button:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
+.lifecycle-message {
+  position: fixed;
+  z-index: 10;
+  bottom: 24px;
+  right: 24px;
+  max-width: min(520px, calc(100vw - 48px));
+  box-shadow: 0 6px 24px rgba(29, 36, 51, .12);
+  line-height: 1.7;
+}
 
 @media (max-width: 860px) {
   .top { height: auto; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }

@@ -6,6 +6,7 @@
   <title th:text="${activity.name} + ' · 活动管理'">活动管理</title>
   <link rel="stylesheet" th:href="@{/css/site.css}">
   <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+  <script defer th:src="@{/js/lifecycle.js}"></script>
 </head>
 <body>
   <div th:replace="~{fragments/header :: bar('manage')}"></div>
@@ -56,7 +57,7 @@
           th:text="'共 ' + ${#lists.size(activity.sessions)} + ' 个场次'">场次数量</span></div>
       <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">添加至少一个场次后即可提交审核。</p>
       <details class="session-editor" th:each="item : ${activity.sessions}"
-          th:open="${editSessionId == item.id}">
+          th:id="'session-' + ${item.id}" th:open="${editSessionId == item.id}">
         <summary>
           <span><span th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')}">开始时间</span>
             <span th:text="' → ' + ${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm')}">结束时间</span>
@@ -88,7 +89,35 @@
           <div><dt>报名截止</dt><dd th:text="${#temporals.format(item.deadline, 'yyyy-MM-dd HH:mm:ss')}">截止</dd></div>
           <div><dt>场次容量</dt><dd th:text="${item.capacity} + ' 人'">容量</dd></div>
         </dl>
+        <form class="lifecycle-form capacity-form"
+            th:if="${activity.published() and item.status.name() == 'PUBLISHED' and now.isBefore(item.deadline) and now.isBefore(item.endTime)}"
+            th:action="@{/organizer/activities/{id}/sessions/{sid}/capacity(id=${activity.id},sid=${item.id})}"
+            method="post">
+          <label>调整容量<input type="number" name="capacity" min="0" max="2147483647"
+              required th:value="${item.capacity}"></label>
+          <button type="submit">保存容量</button>
+          <span class="muted">增加名额后按候补顺序自动递补。</span>
+        </form>
+        <div class="session-operations">
+          <a class="management-link"
+              th:if="${item.status.name() == 'PUBLISHED' or item.status.name() == 'CANCELLED'}"
+              th:href="@{/organizer/activities/{id}/sessions/{sid}/attendance(id=${activity.id},sid=${item.id})}">查看名单与签到</a>
+          <form class="lifecycle-form"
+              th:if="${activity.status.name() != 'CANCELLED' and item.status.name() != 'CANCELLED' and now.isBefore(item.endTime)}"
+              th:action="@{/organizer/activities/{id}/sessions/{sid}/cancel(id=${activity.id},sid=${item.id})}"
+              method="post">
+            <button class="danger-button" type="submit">取消此场次</button>
+          </form>
+        </div>
       </details>
+    </section>
+    <section class="management-card" th:if="${activity.cancellable(now)}">
+      <h2>取消活动</h2>
+      <p class="muted">取消尚未结束的场次及其有效报名，已结束场次与记录保留。</p>
+      <form class="lifecycle-form" th:action="@{/organizer/activities/{id}/cancel(id=${activity.id})}"
+          method="post">
+        <button class="danger-button" type="submit">取消整个活动</button>
+      </form>
     </section>
     <section class="management-card" th:if="${activity.editable() or activity.published()}">
       <h2>添加场次</h2>

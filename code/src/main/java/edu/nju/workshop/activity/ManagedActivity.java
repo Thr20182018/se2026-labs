@@ -1,5 +1,6 @@
 package edu.nju.workshop.activity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ManagedActivity(
@@ -13,5 +14,10 @@ public record ManagedActivity(
 
   public boolean published() {
     return status == PublicationStatus.PUBLISHED;
+  }
+
+  public boolean cancellable(LocalDateTime now) {
+    return status != PublicationStatus.CANCELLED
+        && sessions.stream().anyMatch(session -> session.endTime().isAfter(now));
   }
 }

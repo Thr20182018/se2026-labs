@@ -6,6 +6,7 @@
   <title>我的报名 · 校园工作坊</title>
   <link rel="stylesheet" th:href="@{/css/site.css}">
   <link rel="stylesheet" th:href="@{/css/registrations.css}">
+  <script defer th:src="@{/js/lifecycle.js}"></script>
 </head>
 <body>
   <div th:replace="~{fragments/header :: bar('mine')}"></div>
@@ -43,6 +44,17 @@
           <div class="registration-meta"
               th:if="${item.status.name() == 'WAITLIST' and item.waitlistOrder != null}">
             <span th:text="'候补序号 ' + ${item.waitlistOrder}">候补序号</span>
+          </div>
+          <div class="registration-actions">
+            <form class="lifecycle-form" th:if="${item.cancellable(now)}"
+                th:action="@{/me/sessions/{sid}/registrations/{rid}/cancel(sid=${item.sessionId},rid=${item.id})}"
+                method="post">
+              <button class="danger-button" type="submit"
+                  th:text="${item.status.name() == 'WAITLIST'} ? '退出候补' : '取消报名'">取消报名</button>
+            </form>
+            <a class="discover-link" th:if="${item.status.name() == 'CANCELLED'}"
+                th:href="@{/workshops(selected=${item.sessionId})}"
+                th:text="${item.available and now.isBefore(item.deadline) and now.isBefore(item.end)} ? '重新申请' : '查看场次'">重新申请</a>
           </div>
         </article>
       </div>

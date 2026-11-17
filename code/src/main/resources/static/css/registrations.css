@@ -12,6 +12,8 @@
 .registration-facts dt { margin-bottom: 7px; font-size: 12px; color: var(--muted); }
 .registration-facts dd { margin: 0; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
 .registration-meta { display: flex; flex-wrap: wrap; gap: 10px 24px; color: var(--muted); font-size: 12px; }
+.registration-actions { display: flex; align-items: center; gap: 16px; }
+.registration-actions:has(> *) { margin-top: 18px; }
 .registrations-empty { padding: 48px 24px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 16px; }
 .registrations-empty h2 { margin-top: 0; }
 .registrations-empty .discover-link { display: inline-block; margin-top: 12px; }

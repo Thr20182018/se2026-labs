@@ -105,10 +105,11 @@ public class ActivityManagementService {
       ManagedActivity activity = owned(actorId, id, true);
       requireEditable(activity);
       validate(new ActivityDraft(activity.name(), activity.description()));
-      if (activity.sessions().isEmpty()) {
+      List<ManagedSession> sessions = uncancelledSessions(activity);
+      if (sessions.isEmpty()) {
         throw new ActivityException(400, "请至少添加一个场次后再提交审核");
       }
-      for (ManagedSession session : activity.sessions()) {
+      for (ManagedSession session : sessions) {
         requireEditable(session.status());
         validate(session);
       }
@@ -134,9 +135,12 @@ public class ActivityManagementService {
       if (activity.reviewVersion() != reviewVersion) {
         throw new ActivityException(409, "审核申请已更新，请刷新页面后重试");
       }
-      if (activity.sessions().isEmpty() || activity.sessions().stream()
-          .anyMatch(session -> session.status() != PublicationStatus.PENDING)) {
+      List<ManagedSession> sessions = uncancelledSessions(activity);
+      if (sessions.stream().anyMatch(session -> session.status() != PublicationStatus.PENDING)) {
         throw new ActivityException(409, "场次审核状态已变化，请刷新页面");
+      }
+      if ("approve".equals(decision) && sessions.isEmpty()) {
+        throw new ActivityException(409, "没有可发布的场次，请驳回后补充场次");
       }
       PublicationStatus next = "approve".equals(decision)
           ? PublicationStatus.PUBLISHED : PublicationStatus.REJECTED;
@@ -173,6 +177,11 @@ public class ActivityManagementService {
 
   private void requireEditable(ManagedActivity activity) {
     requireEditable(activity.status());
+  }
+
+  private List<ManagedSession> uncancelledSessions(ManagedActivity activity) {
+    return activity.sessions().stream()
+        .filter(session -> session.status() != PublicationStatus.CANCELLED).toList();
   }
 
   private void requireSessionsEditable(ManagedActivity activity) {

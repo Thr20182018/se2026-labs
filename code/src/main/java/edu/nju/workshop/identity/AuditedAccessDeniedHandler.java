@@ -26,7 +26,14 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
           + "|/(sessions)(?:/([^/]+)(?:/(submit))?)?)?)?");
   private static final Pattern REVIEW = Pattern.compile(
       "/admin/reviews/([^/]+)(?:/(revision)|/sessions/([^/]+))?");
-  private static final Pattern REGISTRATION = Pattern.compile("/me/sessions/([^/]+)/registrations");
+  private static final Pattern REGISTRATION = Pattern.compile(
+      "/me/sessions/([^/]+)/registrations(?:/([^/]+)/cancel)?");
+  private static final Pattern CANCELLATION = Pattern.compile(
+      "/(?:organizer|admin)/activities/([^/]+)(?:/sessions/([^/]+))?/cancel");
+  private static final Pattern CAPACITY = Pattern.compile(
+      "/organizer/activities/([^/]+)/sessions/([^/]+)/capacity");
+  private static final Pattern CHECK_IN = Pattern.compile(
+      "/organizer/activities/([^/]+)/sessions/([^/]+)/registrations/([^/]+)/check-in");
   private final OperationLogService logs;
   private final AccessDeniedHandlerImpl delegate = new AccessDeniedHandlerImpl();
 
@@ -45,12 +52,25 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
       Matcher organizer = ORGANIZER.matcher(path);
       Matcher review = REVIEW.matcher(path);
       Matcher registration = REGISTRATION.matcher(path);
+      Matcher cancellation = CANCELLATION.matcher(path);
+      Matcher capacity = CAPACITY.matcher(path);
+      Matcher checkIn = CHECK_IN.matcher(path);
       String reason = exception instanceof CsrfException
           ? "安全令牌无效，请刷新页面后重试" : "当前角色无权执行该操作";
       if (registration.matches()) {
-        String action = "waitlist".equals(request.getParameter("action"))
-            ? "JOIN_WAITLIST" : "REGISTER";
-        logs.failure(user.getId(), null, id(registration.group(1)), action, reason);
+        String action = registration.group(2) != null ? "CANCEL_REGISTRATION"
+            : "waitlist".equals(request.getParameter("action")) ? "JOIN_WAITLIST" : "REGISTER";
+        logs.failure(user.getId(), null, id(registration.group(1)), id(registration.group(2)),
+            action, reason);
+      } else if (cancellation.matches()) {
+        logs.failure(user.getId(), id(cancellation.group(1)), id(cancellation.group(2)),
+            cancellation.group(2) == null ? "CANCEL_ACTIVITY" : "CANCEL_SESSION", reason);
+      } else if (capacity.matches()) {
+        logs.failure(user.getId(), id(capacity.group(1)), id(capacity.group(2)),
+            "UPDATE_CAPACITY", reason);
+      } else if (checkIn.matches()) {
+        logs.failure(user.getId(), id(checkIn.group(1)), id(checkIn.group(2)),
+            id(checkIn.group(3)), "CHECK_IN", reason);
       } else if (organizer.matches()) {
         logs.failure(user.getId(), id(organizer.group(1)), id(organizer.group(4)),
             organizerAction(organizer), reason);

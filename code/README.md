@@ -17,12 +17,15 @@ SOURCE src/main/resources/db/V001__schema.sql;
 SOURCE src/main/resources/db/V002__demo.sql;
 SOURCE src/main/resources/db/V003__review_version.sql;
 SOURCE src/main/resources/db/V004__session_review_version.sql;
+SOURCE src/main/resources/db/V005__cancelled_session_visibility.sql;
 exit;
 ```
 
 演示账号见 `V002__demo.sql`，密码都是 `Demo-2026`。库里只保存 BCrypt 哈希。
 
 已有 T2-A 数据库升级时，执行一次 `V004__session_review_version.sql`，为场次添加独立审核版本。T1 数据库先执行 `V003__review_version.sql`，再执行 V004。升级脚本保留现有数据。
+
+T4＋T5 启动前执行一次 V005，记录场次取消前是否已发布，保留已有取消场次的公开展示。未发布的场次取消后仍不对参与者展示。
 
 ```powershell
 .\mvnw.cmd verify
@@ -46,3 +49,9 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 报名按服务器接收请求的时间判断截止。截止前已收到的请求完成后，后台每 5 秒检查并将剩余候补转为“候补未成功”。T3 沿用现有表结构，无需新增数据库升级脚本。
 
 阅读报名流程可从 `RegistrationRequestFilter` → `RegistrationController` → `RegistrationService` → `RegistrationRepository` 开始；`RegistrationAdmission` 登记在途请求，`RegistrationDeadlineJob` 处理截止。对应测试为 `RegistrationHttpTest` 和 `RegistrationDeadlineTest`。
+
+参与者在“我的报名”取消报名或退出候补；截止前重新申请会生成新记录，重新候补排到队尾。取消成功报名时立即递补首位候补者。组织者在活动详情展开场次，调整容量后按顺序递补新增名额，容量下限为当前报名人数。取消、退出和容量调整也按服务器接收时间判断截止，截止任务等待已接收的请求完成。
+
+组织者在场次详情进入“查看名单与签到”，为报名成功者签到；重复签到保留首次时间。后台每 5 秒检查结束场次，将仍未签到的报名转为缺席。组织者和管理员可取消单个场次或整个活动，已结束场次保留，尚未结束场次的有效报名和已签到记录一起取消。管理员从“活动管理”查看所有活动并执行取消。
+
+取消递补和容量调整见 `RegistrationService`；活动取消见 `ActivityLifecycleService`；签到与缺席见 `attendance/`。对应测试为 `CancellationPromotionHttpTest`、`ActivityLifecycleHttpTest`、`AttendanceLifecycleHttpTest`，截止边界在 `RegistrationDeadlineTest`。业务变更与成功日志在同一事务中提交，故障回滚后另记失败日志。

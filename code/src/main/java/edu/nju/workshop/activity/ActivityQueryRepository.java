@@ -37,12 +37,15 @@ public class ActivityQueryRepository {
     this.jdbc = jdbc;
   }
 
-  public QueryPage search(ActivityQuery query, LocalDateTime now, int pageSize) {
+  public QueryPage search(ActivityQuery query, LocalDateTime now, int pageSize, long selected) {
     List<Object> filters = new ArrayList<>();
     String where = where(query, now, filters);
     int total = jdbc.queryForObject(
         "SELECT COUNT(*)" + FROM + where, Integer.class, filters.toArray());
     int page = Math.min(query.page(), Math.max(1, (total + pageSize - 1) / pageSize));
+    if (selected > 0) {
+      page = selectedPage(where, filters, selected, pageSize, page);
+    }
     List<Object> args = new ArrayList<>();
     args.add(now);
     args.addAll(filters);
@@ -56,10 +59,30 @@ public class ActivityQueryRepository {
     return new QueryPage(rows, total, page, pageSize);
   }
 
+  private int selectedPage(String where, List<Object> filters, long selected, int pageSize,
+      int fallback) {
+    List<Object> args = new ArrayList<>(filters);
+    args.add(selected);
+    var dates = jdbc.query("SELECT s.start_time" + FROM + where + " AND s.id = ?",
+        (rs, row) -> rs.getObject(1, LocalDateTime.class), args.toArray());
+    if (dates.isEmpty()) {
+      return fallback;
+    }
+    args = new ArrayList<>(filters);
+    args.add(dates.getFirst());
+    args.add(dates.getFirst());
+    args.add(selected);
+    int preceding = jdbc.queryForObject("SELECT COUNT(*)" + FROM + where
+        + " AND (s.start_time < ? OR (s.start_time = ? AND s.id < ?))",
+        Integer.class, args.toArray());
+    return preceding / pageSize + 1;
+  }
+
   private static String where(ActivityQuery query, LocalDateTime now, List<Object> args) {
     StringBuilder sql = new StringBuilder();
     sql.append(" WHERE a.publication_status IN ('PUBLISHED', 'CANCELLED')");
-    sql.append(" AND s.publication_status IN ('PUBLISHED', 'CANCELLED')");
+    sql.append(" AND (s.publication_status = 'PUBLISHED'"
+        + " OR (s.publication_status = 'CANCELLED' AND s.published_before_cancel = TRUE))");
     if (query.keyword() != null) {
       sql.append(" AND a.name LIKE ? ESCAPE '\\\\'");
       args.add(like(query.keyword()));

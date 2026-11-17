@@ -1,6 +1,8 @@
 package edu.nju.workshop.activity;
 
 import edu.nju.workshop.audit.OperationLogService;
+import edu.nju.workshop.registration.RegistrationService;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -10,12 +12,20 @@ public class PublishedActivityService {
   private final ActivityManagementService management;
   private final ActivityManagementRepository repository;
   private final OperationLogService logs;
+  private final RegistrationService registrations;
 
   public PublishedActivityService(ActivityManagementService management,
-      ActivityManagementRepository repository, OperationLogService logs) {
+      ActivityManagementRepository repository, OperationLogService logs,
+      RegistrationService registrations) {
     this.management = management;
     this.repository = repository;
     this.logs = logs;
+    this.registrations = registrations;
+  }
+
+  public String resizeCapacity(long actorId, long activityId, long sessionId, String capacity,
+      Instant receivedAt) {
+    return registrations.resize(actorId, activityId, sessionId, capacity, receivedAt);
   }
 
   public List<ReviewRequest> pendingReviews(long adminId) {

@@ -13,6 +13,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
@@ -104,6 +106,133 @@ public class RegistrationService {
     return repository.mine(actorId);
   }
 
+  public RegistrationResult cancel(long actorId, long sessionId, long registrationId,
+      Instant receivedAt) {
+    Long[] activityId = {null};
+    String[] action = {"CANCEL_REGISTRATION"};
+    try {
+      return transaction.execute(tx -> {
+        requireParticipant(actorId);
+        var session = requireSession(sessionId);
+        activityId[0] = session.activityId();
+        Registration before = repository.owned(actorId, sessionId, registrationId);
+        if (before == null) {
+          throw failure(403, "无权操作该报名记录", null, null);
+        }
+        if (before.status() == RegistrationStatus.CANCELLED) {
+          return result("申请已取消", before, session);
+        }
+        boolean waiting = before.status() == RegistrationStatus.WAITLIST;
+        action[0] = waiting ? "LEAVE_WAITLIST" : "CANCEL_REGISTRATION";
+        if (!waiting && before.status() != RegistrationStatus.REGISTERED) {
+          throw failure(409, "当前报名状态不能取消", before, session);
+        }
+        requireAccepting(session, receivedAt);
+        repository.setStatus(registrationId, RegistrationStatus.CANCELLED);
+        logs.success(actorId, session.activityId(), sessionId, registrationId, action[0],
+            before.status(), RegistrationStatus.CANCELLED);
+        int promoted = waiting ? 0
+            : promote(session, Math.min(1, session.capacity() - repository.registered(sessionId)));
+        String message = waiting ? "已退出候补。" : promoted == 0 ? "报名已取消。" : "报名已取消，候补已递补。";
+        return result(message, new Registration(registrationId, RegistrationStatus.CANCELLED,
+            before.waitlistOrder()), session);
+      });
+    } catch (RuntimeException ex) {
+      logs.failure(actorId, activityId[0], sessionId, registrationId, action[0], reason(ex));
+      throw ex;
+    }
+  }
+
+  public String resize(long actorId, long activityId, long sessionId, String rawCapacity,
+      Instant receivedAt) {
+    try {
+      return transaction.execute(tx -> {
+        if (!repository.organizerOwns(actorId, activityId)) {
+          throw failure(403, "无权修改该活动的容量", null, null);
+        }
+        var session = requireSession(sessionId);
+        if (session.activityId() != activityId) {
+          throw failure(403, "场次不属于该活动", null, null);
+        }
+        requireAccepting(session, receivedAt);
+        int capacity;
+        try {
+          capacity = Integer.parseInt(rawCapacity.strip());
+        } catch (NumberFormatException ex) {
+          throw failure(400, "名额必须是非负整数", null, session);
+        }
+        if (capacity < 0) {
+          throw failure(400, "名额必须是非负整数", null, session);
+        }
+        int occupied = repository.registered(sessionId);
+        if (capacity < occupied) {
+          throw failure(409, "容量不能小于当前报名人数 " + occupied + " 人", null, session);
+        }
+        repository.resize(sessionId, capacity);
+        int promoted = promote(session,
+            Math.min(capacity - session.capacity(), capacity - occupied));
+        logs.success(actorId, activityId, sessionId, "UPDATE_CAPACITY",
+            session.capacity(), capacity);
+        return "容量已更新，已递补 " + promoted + " 人。";
+      });
+    } catch (RuntimeException ex) {
+      logs.failure(actorId, activityId, sessionId, "UPDATE_CAPACITY", reason(ex));
+      throw ex;
+    }
+  }
+
+  /** 活动取消事务已锁定场次，关联记录与场次状态一起提交。 */
+  @Transactional(propagation = Propagation.MANDATORY)
+  public void cancelForSession(long actorId, long activityId, long sessionId) {
+    for (Registration registration : repository.cancellable(sessionId)) {
+      repository.setStatus(registration.id(), RegistrationStatus.CANCELLED);
+      logs.success(actorId, activityId, sessionId, registration.id(), "CANCEL_REGISTRATION",
+          registration.status(), RegistrationStatus.CANCELLED);
+    }
+  }
+
+  private int promote(RegistrationRepository.Session session, int slots) {
+    if (slots <= 0) {
+      return 0;
+    }
+    int promoted = 0;
+    for (Registration registration : repository.waitlist(session.id())) {
+      if (promoted == slots) {
+        break;
+      }
+      repository.setStatus(registration.id(), RegistrationStatus.REGISTERED);
+      logs.success(null, session.activityId(), session.id(), registration.id(), "PROMOTE_WAITLIST",
+          RegistrationStatus.WAITLIST, RegistrationStatus.REGISTERED);
+      promoted++;
+    }
+    return promoted;
+  }
+
+  private RegistrationRepository.Session requireSession(long sessionId) {
+    var session = repository.lock(sessionId);
+    if (session == null) {
+      throw failure(404, "场次不存在", null, null);
+    }
+    return session;
+  }
+
+  private void requireAccepting(RegistrationRepository.Session session, Instant receivedAt) {
+    if (!"PUBLISHED".equals(session.status())
+        || !repository.activityPublished(session.activityId())) {
+      throw failure(409, "场次尚未发布或已取消", null, session);
+    }
+    if (!now().isBefore(session.end())) {
+      throw failure(409, "场次已结束", null, session);
+    }
+    if (!BeijingTime.toLocal(receivedAt).isBefore(session.deadline())) {
+      throw failure(409, "报名已截止，不能取消、退出候补或修改容量", null, session);
+    }
+  }
+
+  private String reason(RuntimeException ex) {
+    return ex instanceof RegistrationException ? ex.getMessage() : "操作未完成，事务已回滚";
+  }
+
   public void closeDueWaitlists() {
     for (long sessionId : repository.dueSessions(now())) {
       transaction.executeWithoutResult(tx -> {
@@ -142,7 +271,8 @@ public class RegistrationService {
   private RegistrationResult result(String message, Registration registration,
       RegistrationRepository.Session session) {
     int remaining = session.capacity() - repository.registered(session.id());
-    Availability availability = !now().isBefore(session.deadline()) ? Availability.CLOSED
+    Availability availability = "CANCELLED".equals(session.status()) ? Availability.CANCELLED
+        : !now().isBefore(session.deadline()) ? Availability.CLOSED
         : remaining <= 0 || repository.hasWaitlist(session.id()) ? Availability.WAITLIST
         : Availability.OPEN;
     return RegistrationResult.of(message, registration, remaining, availability);
