@@ -14,13 +14,14 @@ public class OperationLogRepository {
   }
 
   void insert(LocalDateTime time, Long actorId, Long activityId, Long sessionId,
-      String action, String result, String reason, String before, String after) {
+      Long registrationId, String action, String result, String reason,
+      String before, String after) {
     jdbc.update("""
         INSERT INTO operation_logs
-          (operated_at, actor_type, actor_id, activity_id, session_id, action,
+          (operated_at, actor_type, actor_id, activity_id, session_id, registration_id, action,
            result, failure_reason, before_value, after_value)
-        VALUES (?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
         """, time, actorId == null ? "SYSTEM" : "USER", actorId, activityId, sessionId,
-        action, result, reason, before, after);
+        registrationId, action, result, reason, before, after);
   }
 }

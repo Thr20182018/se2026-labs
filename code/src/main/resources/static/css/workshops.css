@@ -80,8 +80,17 @@
 .session-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 20px; margin: 0; }
 .session-facts dd { margin: 0; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .session-detail-bottom { padding-top: 15px; margin-top: 18px; border-top: 1px solid var(--line); }
-.session-action { border: 0; border-radius: 8px; padding: 9px 24px; min-height: 40px; background: var(--purple); color: #fff; }
+.session-action { border: 0; border-radius: 8px; padding: 9px 24px; min-height: 40px; background: var(--purple); color: #fff; cursor: pointer; }
+.session-action:hover:not(:disabled) { background: var(--purple-deep); }
+.session-action:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
 .session-action:disabled { color: #94899d; background: #ede7f2; cursor: not-allowed; }
+.registration-form { display: flex; align-items: center; flex-wrap: wrap; justify-content: end; gap: 12px; }
+.registration-status { color: var(--purple); font-size: 14px; }
+.registration-feedback { font-size: 14px; line-height: 1.7; }
+.registration-message { margin: 12px 0 0; }
+.registration-message:empty { margin: 0; }
+.registration-login { display: inline-block; margin-top: 8px; color: var(--purple); }
+.registration-login[hidden] { display: none; }
 
 @media (max-width: 860px) {
   .workshops-page .filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }

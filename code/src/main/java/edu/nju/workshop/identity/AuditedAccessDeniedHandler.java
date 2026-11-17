@@ -26,6 +26,7 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
           + "|/(sessions)(?:/([^/]+)(?:/(submit))?)?)?)?");
   private static final Pattern REVIEW = Pattern.compile(
       "/admin/reviews/([^/]+)(?:/(revision)|/sessions/([^/]+))?");
+  private static final Pattern REGISTRATION = Pattern.compile("/me/sessions/([^/]+)/registrations");
   private final OperationLogService logs;
   private final AccessDeniedHandlerImpl delegate = new AccessDeniedHandlerImpl();
 
@@ -43,9 +44,14 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
       String path = auditPath(request);
       Matcher organizer = ORGANIZER.matcher(path);
       Matcher review = REVIEW.matcher(path);
+      Matcher registration = REGISTRATION.matcher(path);
       String reason = exception instanceof CsrfException
           ? "安全令牌无效，请刷新页面后重试" : "当前角色无权执行该操作";
-      if (organizer.matches()) {
+      if (registration.matches()) {
+        String action = "waitlist".equals(request.getParameter("action"))
+            ? "JOIN_WAITLIST" : "REGISTER";
+        logs.failure(user.getId(), null, id(registration.group(1)), action, reason);
+      } else if (organizer.matches()) {
         logs.failure(user.getId(), id(organizer.group(1)), id(organizer.group(4)),
             organizerAction(organizer), reason);
       } else if (review.matches()) {

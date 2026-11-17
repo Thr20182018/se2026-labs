@@ -79,14 +79,26 @@
                   <div><dt>活动地点</dt><dd th:text="${row.location}">地点</dd></div>
                   <div><dt>报名截止</dt><dd th:text="${row.deadlineLabel}">截止</dd></div>
                   <div><dt>名额</dt>
-                    <dd th:text="'共 ' + ${row.capacity} + ' 个，剩余 ' + ${row.remaining}">名额</dd>
+                    <dd>共 <span th:text="${row.capacity}">0</span> 个，剩余
+                      <span class="session-remaining" th:text="${row.remaining}">0</span></dd>
                   </div>
                 </dl>
               </div>
               <div class="session-detail-bottom">
                 <span class="free">免费线下活动</span>
-                <button class="session-action" type="button" disabled
-                    th:text="${row.actionLabel}">报名此场次</button>
+                <form class="registration-form" method="post" th:if="${participant}"
+                    th:with="offer=${registrationOffers[row.id]}"
+                    th:action="@{/me/sessions/{id}/registrations(id=${row.id})}">
+                  <input type="hidden" name="action" th:value="${offer.action}">
+                  <span class="registration-status" th:hidden="${offer.status == null}"
+                      th:text="${offer.statusLabel}">报名状态</span>
+                  <button class="session-action" type="submit" th:disabled="${!offer.canApply}"
+                      th:text="${offer.actionLabel}">报名此场次</button>
+                </form>
+              </div>
+              <div class="registration-feedback" th:if="${participant}">
+                <p class="registration-message" role="status" aria-live="polite" aria-atomic="true"></p>
+                <a class="registration-login" href="/login" hidden>重新登录</a>
               </div>
             </div>
           </details>

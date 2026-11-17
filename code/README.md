@@ -40,3 +40,9 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 组织者的“我的活动”同时展示活动状态、最近一次内容修改结果，以及新增场次各审核状态的数量；未提交过的类别隐藏。内容修改被驳回后，详情页持续显示反馈，重新提交后更新为待审核。
 
 阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` / `PublishedActivityService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`。对应测试为 `ActivityPublishingHttpTest` 和 `PublishedActivityHttpTest`。
+
+参与者在场次详情中报名；名额已满或已有候补者时，可主动加入候补。提交结果原地显示，“我的报名”列出本人的记录、状态和候补序号。演示参与者为 `lin_zy`、`chen_an`、`wang_he` 和 `xu_lin`，密码同上。
+
+报名按服务器接收请求的时间判断截止。截止前已收到的请求完成后，后台每 5 秒检查并将剩余候补转为“候补未成功”。T3 沿用现有表结构，无需新增数据库升级脚本。
+
+阅读报名流程可从 `RegistrationRequestFilter` → `RegistrationController` → `RegistrationService` → `RegistrationRepository` 开始；`RegistrationAdmission` 登记在途请求，`RegistrationDeadlineJob` 处理截止。对应测试为 `RegistrationHttpTest` 和 `RegistrationDeadlineTest`。
