@@ -40,10 +40,9 @@
               <dd th:text="${#temporals.format(item.registeredAt, 'yyyy-MM-dd HH:mm')}">申请时间</dd>
             </div>
           </dl>
-          <div class="registration-meta">
-            <span th:text="'报名编号 ' + ${item.id} + ' · 场次编号 ' + ${item.sessionId}">报名与场次编号</span>
-            <span th:if="${item.status.name() == 'WAITLIST' and item.waitlistOrder != null}"
-                th:text="'候补序号 ' + ${item.waitlistOrder}">候补序号</span>
+          <div class="registration-meta"
+              th:if="${item.status.name() == 'WAITLIST' and item.waitlistOrder != null}">
+            <span th:text="'候补序号 ' + ${item.waitlistOrder}">候补序号</span>
           </div>
         </article>
       </div>
