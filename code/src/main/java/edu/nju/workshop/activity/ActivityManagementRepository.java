@@ -39,6 +39,10 @@ public class ActivityManagementRepository {
     return summaries("a.organizer_id = ?", actorId);
   }
 
+  List<ActivitySummary> all() {
+    return summaries("1 = ?", 1);
+  }
+
   List<ActivitySummary> pending() {
     return summaries("a.publication_status = ?", "PENDING");
   }
@@ -150,7 +154,8 @@ public class ActivityManagementRepository {
 
   void setStatus(long id, PublicationStatus status) {
     jdbc.update("UPDATE activities SET publication_status = ? WHERE id = ?", status.name(), id);
-    jdbc.update("UPDATE sessions SET publication_status = ? WHERE activity_id = ?",
+    jdbc.update("UPDATE sessions SET publication_status = ?"
+        + " WHERE activity_id = ? AND publication_status <> 'CANCELLED'",
         status.name(), id);
   }
 

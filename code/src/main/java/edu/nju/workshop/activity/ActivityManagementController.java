@@ -1,7 +1,13 @@
 package edu.nju.workshop.activity;
 
 import edu.nju.workshop.identity.AccountUser;
+import edu.nju.workshop.registration.RegistrationAdmission;
+import edu.nju.workshop.registration.RegistrationException;
+import edu.nju.workshop.registration.RegistrationRequestFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -123,6 +129,20 @@ public class ActivityManagementController {
   public String reviews(Model model) {
     model.addAttribute("requests", published.pendingReviews(actor()));
     return "admin-reviews";
+  }
+
+  @PostMapping("/organizer/activities/{id}/sessions/{sessionId}/capacity")
+  public ResponseEntity<Map<String, String>> capacity(@PathVariable long id,
+      @PathVariable long sessionId, @RequestParam(defaultValue = "") String capacity,
+      HttpServletRequest request) {
+    var receipt = (RegistrationAdmission.Receipt)
+        request.getAttribute(RegistrationRequestFilter.RECEIPT);
+    try {
+      return ResponseEntity.ok(Map.of("message", published.resizeCapacity(
+          actor(), id, sessionId, capacity, receipt.receivedAt())));
+    } catch (RegistrationException ex) {
+      return ResponseEntity.status(ex.status()).body(Map.of("message", ex.getMessage()));
+    }
   }
 
   @GetMapping("/admin/reviews/{id}")

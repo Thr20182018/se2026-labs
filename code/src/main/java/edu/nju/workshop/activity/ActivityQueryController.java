@@ -39,7 +39,8 @@ public class ActivityQueryController {
     model.addAttribute("participant", participant);
     try {
       ActivityQuery query = ActivityQuery.parse(keyword, dateFrom, dateTo, availability, page);
-      QueryPage result = service.search(query, PAGE_SIZE);
+      QueryPage result = service.search(query, PAGE_SIZE,
+          page == null || page.isBlank() ? selected : 0);
       model.addAttribute("result", result);
       model.addAttribute("selectedId", selected);
       model.addAttribute("registrationOffers", participant

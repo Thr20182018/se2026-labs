@@ -162,4 +162,92 @@ class RegistrationDeadlineTest extends WorkshopTestBase {
     return jdbc.queryForObject("SELECT status FROM registrations WHERE participant_id = ?",
         String.class, participantId);
   }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"cancel", "capacity"})
+  void admittedChangesPromoteBeforeTheRemainingQueueCloses(String action) {
+    prepareQueue();
+    var receipt = admission.begin(1);
+    try {
+      clock.setBeijing(deadline);
+      registrations.closeDueWaitlists();
+      assertEquals("WAITLIST", state(3));
+      if ("cancel".equals(action)) {
+        registrations.cancel(1, 1, 10, receipt.receivedAt());
+        assertEquals("CANCELLED", state(1));
+      } else {
+        registrations.resize(2, 1, 1, "2", receipt.receivedAt());
+        assertEquals("REGISTERED", state(1));
+      }
+      assertEquals("REGISTERED", state(3));
+      assertEquals("WAITLIST", state(4));
+    } finally {
+      admission.end(receipt);
+    }
+    registrations.closeDueWaitlists();
+    assertEquals("WAITLIST_EXPIRED", state(4));
+    assertEquals("REGISTERED", state(3));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"cancel", "capacity"})
+  void httpChangesKeepTheirReceiptTimeWhileWaitingForTheSessionLock(String action)
+      throws Exception {
+    prepareQueue();
+    boolean cancel = "cancel".equals(action);
+    var actor = login(cancel ? "lin_zy" : "su_qing", cancel ? "PARTICIPANT" : "ORGANIZER");
+    String path = cancel ? "/me/sessions/1/registrations/10/cancel"
+        : "/organizer/activities/1/sessions/1/capacity";
+    try (var executor = Executors.newSingleThreadExecutor();
+        Connection lock = Objects.requireNonNull(jdbc.getDataSource()).getConnection()) {
+      lock.setAutoCommit(false);
+      try (var statement = lock.prepareStatement("SELECT id FROM sessions WHERE id = 1 FOR UPDATE");
+          var row = statement.executeQuery()) {
+        assertTrue(row.next());
+      }
+      var result = executor.submit(() -> mvc.perform(post(path).session(actor).with(csrf())
+          .param("capacity", "2")).andExpect(status().isOk()));
+      long timeout = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+      while (!admission.hasPendingBefore(1, Instant.MAX) && System.nanoTime() < timeout) {
+        Thread.sleep(10);
+      }
+      assertTrue(admission.hasPendingBefore(1, Instant.MAX));
+      clock.setBeijing(deadline);
+      lock.commit();
+      result.get(5, TimeUnit.SECONDS);
+    }
+    assertFalse(admission.hasPendingBefore(1, Instant.MAX));
+    assertEquals("REGISTERED", state(3));
+    registrations.closeDueWaitlists();
+    assertEquals("WAITLIST_EXPIRED", state(4));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 1})
+  void exactAndLaterDeadlineRejectCancellationAndCapacityChanges(int seconds) throws Exception {
+    prepareQueue();
+    var participant = login("lin_zy", "PARTICIPANT");
+    var organizer = login("su_qing", "ORGANIZER");
+    var waiting = login("chen_an", "PARTICIPANT");
+    clock.setBeijing(deadline.plusSeconds(seconds));
+    mvc.perform(post("/me/sessions/1/registrations/10/cancel").session(participant).with(csrf()))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/me/sessions/1/registrations/11/cancel").session(waiting).with(csrf()))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/organizer/activities/1/sessions/1/capacity").session(organizer).with(csrf())
+            .param("capacity", "2")).andExpect(status().isConflict());
+    assertEquals("REGISTERED", state(1));
+    assertEquals("WAITLIST", state(3));
+    assertEquals(1, jdbc.queryForObject("SELECT capacity FROM sessions WHERE id = 1",
+        Integer.class));
+    assertFalse(admission.hasPendingBefore(1, Instant.MAX));
+  }
+
+  private void prepareQueue() {
+    user(4, "wang_he", "王禾", "PARTICIPANT");
+    registration(10, 1, 1, "REGISTERED");
+    registration(11, 3, 1, "WAITLIST");
+    registration(12, 4, 1, "WAITLIST");
+    jdbc.update("UPDATE registrations SET waitlist_order = id - 10 WHERE id IN (11, 12)");
+  }
 }

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${activity.name} + ' · 签到名单'">签到名单</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+  <script defer th:src="@{/js/lifecycle.js}"></script>
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('manage')}"></div>
+  <main class="sheet management"
+      th:with="checkInOpen=${activity.published() and workshopSession.status.name() == 'PUBLISHED' and now.isBefore(workshopSession.endTime)}">
+    <a class="management-back" th:href="@{/organizer/activities/{id}(id=${activity.id})}">← 活动详情</a>
+    <div class="page-head">
+      <h1>签到名单</h1>
+      <span class="status" th:classappend="${workshopSession.status.name()}"
+          th:text="${workshopSession.status.label}">场次状态</span>
+    </div>
+    <section class="management-card">
+      <h2 th:text="${activity.name}">活动名称</h2>
+      <dl class="review-facts">
+        <div><dt>场次时间</dt>
+          <dd th:text="${#temporals.format(workshopSession.startTime, 'yyyy-MM-dd HH:mm')} + ' → ' + ${#temporals.format(workshopSession.endTime, 'yyyy-MM-dd HH:mm')}">场次时间</dd>
+        </div>
+        <div><dt>活动地点</dt><dd th:text="${workshopSession.location}">地点</dd></div>
+        <div><dt>场次容量</dt><dd th:text="${workshopSession.capacity} + ' 人'">容量</dd></div>
+      </dl>
+    </section>
+    <section class="management-card">
+      <h2>报名记录</h2>
+      <p class="empty" th:if="${#lists.isEmpty(attendees)}">此场次暂无报名记录。</p>
+      <div class="attendance-scroll" th:unless="${#lists.isEmpty(attendees)}">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th scope="col">姓名</th>
+              <th scope="col">账号</th>
+              <th scope="col">状态</th>
+              <th scope="col">首次签到时间</th>
+              <th scope="col">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${attendees}"
+                th:with="canCheckIn=${checkInOpen and item.status.name() == 'REGISTERED'}">
+              <td th:text="${item.participantName}">姓名</td>
+              <td th:text="${item.account}">账号</td>
+              <td><span class="status" th:classappend="${item.status.name()}"
+                  th:text="${item.status.label}">报名状态</span></td>
+              <td th:text="${item.checkedInAt == null} ? '—' : ${#temporals.format(item.checkedInAt, 'yyyy-MM-dd HH:mm:ss')}">签到时间</td>
+              <td>
+                <form class="lifecycle-form" th:if="${canCheckIn}"
+                    th:action="@{/organizer/activities/{id}/sessions/{sid}/registrations/{rid}/check-in(id=${activity.id},sid=${workshopSession.id},rid=${item.id})}"
+                    method="post">
+                  <button type="submit" th:aria-label="'为 ' + ${item.participantName} + ' 签到'">签到</button>
+                </form>
+                <span class="muted" th:unless="${canCheckIn}">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

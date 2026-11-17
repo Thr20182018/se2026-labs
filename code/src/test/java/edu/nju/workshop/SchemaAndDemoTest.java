@@ -66,7 +66,9 @@ class SchemaAndDemoTest extends WorkshopTestBase {
 
   @Test
   void demoSeedLoadsAndPublicQueryUsesPublishedContent() {
+    jdbc.execute("ALTER TABLE sessions DROP COLUMN published_before_cancel");
     executeScript("db/V002__demo.sql");
+    executeScript("db/V005__cancelled_session_visibility.sql");
     String hash = jdbc.queryForObject(
         "SELECT password_hash FROM users WHERE account = 'lin_zy'", String.class);
     assertTrue(new BCryptPasswordEncoder().matches(PASSWORD, hash));

@@ -5,7 +5,12 @@ import java.time.format.DateTimeFormatter;
 
 public record RegistrationRow(long id, long sessionId, String name, String location,
     LocalDateTime start, LocalDateTime end, LocalDateTime registeredAt,
-    RegistrationStatus status, Integer waitlistOrder) {
+    RegistrationStatus status, Integer waitlistOrder, LocalDateTime deadline, boolean available) {
+
+  public boolean cancellable(LocalDateTime now) {
+    return available && now.isBefore(deadline) && now.isBefore(end)
+        && (status == RegistrationStatus.REGISTERED || status == RegistrationStatus.WAITLIST);
+  }
 
   public String timeLabel() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

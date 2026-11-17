@@ -23,7 +23,12 @@ public class ActivityQueryService {
    */
   @Transactional(readOnly = true)
   public QueryPage search(ActivityQuery query, int pageSize) {
+    return search(query, pageSize, 0);
+  }
+
+  @Transactional(readOnly = true)
+  public QueryPage search(ActivityQuery query, int pageSize, long selected) {
     LocalDateTime now = BeijingTime.toLocal(clock.now());
-    return repository.search(query, now, pageSize);
+    return repository.search(query, now, pageSize, selected);
   }
 }

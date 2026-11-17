@@ -11,13 +11,12 @@
   <div th:replace="~{fragments/header :: bar('manage')}"></div>
   <main class="sheet management">
     <div class="page-head"><h1>活动管理</h1><span class="free">我的工作坊</span></div>
-    <p class="muted">管理活动与场次，查看审核和发布状态。</p>
     <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
     <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
     <div class="management-grid">
       <section class="management-card">
         <h2>我的活动 <small th:text="'共 ' + ${#lists.size(activities)} + ' 个'">共 0 个</small></h2>
-        <p class="empty" th:if="${#lists.isEmpty(activities)}">还没有活动，从创建第一个工作坊开始。</p>
+        <p class="empty" th:if="${#lists.isEmpty(activities)}">暂无活动。</p>
         <div class="activity-row" th:each="item : ${activities}">
           <div>
             <a class="activity-title" th:href="@{/organizer/activities/{id}(id=${item.id})}"

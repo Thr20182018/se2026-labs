@@ -39,8 +39,13 @@ public class OperationLogService {
 
   /** 由业务入口在回滚后调用，失败原因单独提交。 */
   public void failure(long actorId, Long activityId, Long sessionId, String action, String reason) {
-    failureTransaction.executeWithoutResult(status ->
-        insert(actorId, activityId, sessionId, null, action, "FAILURE", reason, null, null));
+    failure(actorId, activityId, sessionId, null, action, reason);
+  }
+
+  public void failure(Long actorId, Long activityId, Long sessionId, Long registrationId,
+      String action, String reason) {
+    failureTransaction.executeWithoutResult(status -> insert(actorId, activityId, sessionId,
+        registrationId, action, "FAILURE", reason, null, null));
   }
 
   private void insert(Long actorId, Long activityId, Long sessionId, Long registrationId,

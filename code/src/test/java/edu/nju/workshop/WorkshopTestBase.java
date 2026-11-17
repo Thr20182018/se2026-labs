@@ -64,6 +64,7 @@ abstract class WorkshopTestBase {
     executeScript("db/V001__schema.sql");
     executeScript("db/V003__review_version.sql");
     executeScript("db/V004__session_review_version.sql");
+    executeScript("db/V005__cancelled_session_visibility.sql");
   }
 
   void executeScript(String classpath) {
@@ -92,9 +93,10 @@ abstract class WorkshopTestBase {
       int capacity, String status) {
     jdbc.update(
         "INSERT INTO sessions (id, activity_id, start_time, end_time,"
-            + " registration_deadline, location, capacity, publication_status)"
-            + " VALUES (?,?,?,?,?,?,?,?)",
-        id, activityId, start, end, deadline, "仙林校区 · 逸夫楼 A203", capacity, status);
+            + " registration_deadline, location, capacity, publication_status,"
+            + " published_before_cancel) VALUES (?,?,?,?,?,?,?,?,?)",
+        id, activityId, start, end, deadline, "仙林校区 · 逸夫楼 A203", capacity, status,
+        "CANCELLED".equals(status));
   }
 
   void registration(long id, long userId, long sessionId, String status) {

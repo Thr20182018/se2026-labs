@@ -39,4 +39,14 @@ public class RegistrationController {
   public ResponseEntity<RegistrationResult> failure(RegistrationException ex) {
     return ResponseEntity.status(ex.status()).body(ex.result());
   }
+
+  @PostMapping("/me/sessions/{sessionId}/registrations/{registrationId}/cancel")
+  @ResponseBody
+  public RegistrationResult cancel(@PathVariable long sessionId, @PathVariable long registrationId,
+      HttpServletRequest request) {
+    var receipt = (RegistrationAdmission.Receipt)
+        request.getAttribute(RegistrationRequestFilter.RECEIPT);
+    return service.cancel(AccountUser.current().getId(), sessionId, registrationId,
+        receipt.receivedAt());
+  }
 }

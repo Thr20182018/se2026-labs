@@ -14,7 +14,6 @@
     <div class="page-head">
       <div>
         <h1>发现校园工作坊</h1>
-        <p class="muted">从一场体验开始，让兴趣在校园里发生。</p>
       </div>
       <span class="free">免费线下活动</span>
     </div>
@@ -46,7 +45,6 @@
     <section th:if="${result != null}">
       <div class="list-head">
         <h2>工作坊场次 <span th:text="'共 ' + ${result.total} + ' 个场次'">共 0 个场次</span></h2>
-        <span class="muted">按开始时间从近到远</span>
       </div>
       <p class="empty" th:if="${result.total == 0}">暂无符合条件的场次</p>
       <div th:if="${result.total > 0}">

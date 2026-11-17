@@ -12,7 +12,6 @@
   <main class="sheet management">
     <div class="page-head"><h1>审核管理</h1><span class="free"
         th:text="${#lists.size(requests)} + ' 个待审核申请'">待审核数量</span></div>
-    <p class="muted">核对首次发布、内容修改和新增场次申请，审核通过后自动更新。</p>
     <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
     <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
     <section class="management-card">
