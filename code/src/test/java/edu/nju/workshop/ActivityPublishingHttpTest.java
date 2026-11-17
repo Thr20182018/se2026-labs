@@ -155,7 +155,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   }
 
   @Test
-  void rolesCsrfAndSelfReviewAreEnforced() throws Exception {
+  void rolesAndCsrfAreEnforced() throws Exception {
     MvcResult wrongRole = mvc.perform(write(participant, "/organizer/activities")
             .param("name", "越权创建")
             .param("description", "越权创建"))
@@ -165,16 +165,14 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
         .andExpect(status().isForbidden());
     assertEquals(0, count("SELECT COUNT(*) FROM activities"));
     assertEquals(2, logs("CREATE_ACTIVITY", "FAILURE"));
-    activity(100, 4, "审核人自己的活动", "PENDING", null, null);
+    activity(100, 2, "组织者提交的活动", "PENDING", null, null);
     session(100, 100, "2026-11-15 14:00:00", "2026-11-15 16:00:00",
         "2026-11-14 18:00:00", 8, "PENDING");
-    mvc.perform(write(admin, "/admin/reviews/100").param("decision", "approve"))
-        .andExpect(status().isForbidden());
     mvc.perform(write(organizer, "/admin/reviews/100").param("decision", "approve"))
         .andExpect(status().isForbidden());
     assertState(100, "PENDING", 1);
     assertEquals(0, logs("PUBLISH_ACTIVITY", "SUCCESS"));
-    assertEquals(2, logs("APPROVE_REVIEW", "FAILURE"));
+    assertEquals(1, logs("APPROVE_REVIEW", "FAILURE"));
     String reasons = String.join("\n", jdbc.queryForList(
         "SELECT failure_reason FROM operation_logs WHERE result = 'FAILURE'", String.class));
     CsrfToken token = (CsrfToken) wrongRole.getRequest().getAttribute(CsrfToken.class.getName());

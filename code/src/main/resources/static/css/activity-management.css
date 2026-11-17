@@ -20,6 +20,8 @@
 .activity-title { font: 600 20px/1.5 var(--font-heading); text-decoration: none; overflow-wrap: anywhere; }
 .activity-title:hover { color: var(--purple); text-decoration: underline; text-underline-offset: 4px; }
 .activity-row p { margin: 6px 0 0; font-size: 13px; }
+.activity-review-statuses { display: grid; gap: 8px; margin-top: 12px; }
+.session-review-statuses { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
 .management .status { white-space: nowrap; font-size: 13px; }
 .status.DRAFT { color: var(--closed); background: var(--closed-bg); }
 .status.PENDING { color: var(--purple); background: var(--soft); }
@@ -74,13 +76,20 @@
 .review-facts dt { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
 .review-facts dd { margin: 0; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
 .session-editor .review-facts { margin: 0 0 22px; }
+.session-submit { padding-bottom: 22px; }
+.session-submit .muted { margin-top: 0; font-size: 14px; }
+.revision-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.revision-panel { padding: 18px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.revision-label { color: var(--purple); font-size: 14px; margin: 0 0 12px; }
+.revision-name { font-size: 20px; overflow-wrap: anywhere; margin: 0 0 12px; }
+.revision-feedback { color: var(--danger); background: var(--danger-bg); padding: 12px 16px; border-radius: 9px; line-height: 1.7; }
 @media (max-width: 860px) {
   .management-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 @media (max-width: 600px) {
   .management-card { padding: 18px; }
   .management .page-head { flex-wrap: wrap; }
-  .session-fields, .review-facts { grid-template-columns: minmax(0, 1fr); }
+  .session-fields, .review-facts, .revision-comparison { grid-template-columns: minmax(0, 1fr); }
   .session-editor summary { flex-wrap: wrap; gap: 8px; }
   .submit-review { align-items: start; flex-direction: column; }
 }

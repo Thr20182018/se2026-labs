@@ -16,12 +16,13 @@ mysql --host=127.0.0.1 --port=3306 --user=workshop_dev --password workshop_dev
 SOURCE src/main/resources/db/V001__schema.sql;
 SOURCE src/main/resources/db/V002__demo.sql;
 SOURCE src/main/resources/db/V003__review_version.sql;
+SOURCE src/main/resources/db/V004__session_review_version.sql;
 exit;
 ```
 
 演示账号见 `V002__demo.sql`，密码都是 `Demo-2026`。库里只保存 BCrypt 哈希。
 
-已有 T1/T2-A 数据库升级时，只需执行一次 `V003__review_version.sql`，为已有活动添加审核版本，保留现有数据。
+已有 T2-A 数据库升级时，执行一次 `V004__session_review_version.sql`，为场次添加独立审核版本。T1 数据库先执行 `V003__review_version.sql`，再执行 V004。升级脚本保留现有数据。
 
 ```powershell
 .\mvnw.cmd verify
@@ -34,4 +35,8 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 
 组织者 `su_qing` 在“活动管理”创建草稿、添加多个场次并提交审核；管理员 `he_qm` 在“审核管理”通过或驳回。通过后，参与者 `lin_zy` 可在查询页看到场次；驳回后，组织者可以修改并重新提交。三个演示账号均使用上述演示密码。
 
-阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`，完整回归场景见 `ActivityPublishingHttpTest`。
+已发布活动可以提交名称和简介的修改申请，审核期间继续展示原内容，通过后替换。组织者也可以新增场次并单独提交审核，通过后该场次发布。管理员在同一待审核列表处理首次发布、内容修改和新增场次三类申请。
+
+组织者的“我的活动”同时展示活动状态、最近一次内容修改结果，以及新增场次各审核状态的数量；未提交过的类别隐藏。内容修改被驳回后，详情页持续显示反馈，重新提交后更新为待审核。
+
+阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` / `PublishedActivityService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`。对应测试为 `ActivityPublishingHttpTest` 和 `PublishedActivityHttpTest`。

@@ -73,12 +73,12 @@ public class ActivityManagementService {
   public long addSession(long actorId, long id, SessionDraft draft) {
     return execute(actorId, id, null, "CREATE_SESSION", () -> {
       ManagedActivity activity = owned(actorId, id, true);
-      requireEditable(activity);
-      ManagedSession valid = validate(0, draft, PublicationStatus.DRAFT);
+      requireSessionsEditable(activity);
+      ManagedSession valid = validate(0, draft, PublicationStatus.DRAFT, 0);
       long sessionId = repository.addSession(id, valid);
       logs.success(actorId, id, sessionId, "CREATE_SESSION", null,
           new ManagedSession(sessionId, valid.startTime(), valid.endTime(), valid.deadline(),
-              valid.location(), valid.capacity(), valid.status()));
+              valid.location(), valid.capacity(), valid.status(), valid.reviewVersion()));
       return sessionId;
     });
   }
@@ -86,14 +86,14 @@ public class ActivityManagementService {
   public void editSession(long actorId, long id, long sessionId, SessionDraft draft) {
     execute(actorId, id, sessionId, "UPDATE_SESSION", () -> {
       ManagedActivity activity = owned(actorId, id, true);
-      requireEditable(activity);
+      requireSessionsEditable(activity);
       ManagedSession before = activity.sessions().stream().filter(row -> row.id() == sessionId)
           .findFirst().orElseThrow(() -> new ActivityException(403, "无权访问该场次"));
       if (!before.endTime().isAfter(BeijingTime.toLocal(clock.now()))) {
         throw new ActivityException(409, "已结束的场次不能修改");
       }
       requireEditable(before.status());
-      ManagedSession valid = validate(sessionId, draft, before.status());
+      ManagedSession valid = validate(sessionId, draft, before.status(), before.reviewVersion());
       repository.editSession(id, valid);
       logs.success(actorId, id, sessionId, "UPDATE_SESSION", before, valid);
       return null;
@@ -149,7 +149,7 @@ public class ActivityManagementService {
     });
   }
 
-  private ManagedActivity owned(long actorId, long id, boolean lock) {
+  ManagedActivity owned(long actorId, long id, boolean lock) {
     requireRole(actorId, "ORGANIZER");
     ManagedActivity activity = repository.find(id, lock)
         .orElseThrow(() -> new ActivityException(403, "无权访问该活动"));
@@ -159,17 +159,13 @@ public class ActivityManagementService {
     return activity;
   }
 
-  private ManagedActivity reviewable(long adminId, long id, boolean lock) {
+  ManagedActivity reviewable(long adminId, long id, boolean lock) {
     requireRole(adminId, "ADMIN");
-    ManagedActivity activity = repository.find(id, lock)
+    return repository.find(id, lock)
         .orElseThrow(() -> new ActivityException(404, "活动不存在"));
-    if (activity.organizerId() == adminId) {
-      throw new ActivityException(403, "不能审核自己负责的活动");
-    }
-    return activity;
   }
 
-  private void requireRole(long actorId, String role) {
+  void requireRole(long actorId, String role) {
     if (!role.equals(repository.role(actorId))) {
       throw new ActivityException(403, "无权执行该操作");
     }
@@ -179,18 +175,25 @@ public class ActivityManagementService {
     requireEditable(activity.status());
   }
 
-  private void requireEditable(PublicationStatus status) {
+  private void requireSessionsEditable(ManagedActivity activity) {
+    if (!activity.published()) {
+      requireEditable(activity);
+    }
+  }
+
+  void requireEditable(PublicationStatus status) {
     if (status != PublicationStatus.DRAFT && status != PublicationStatus.REJECTED) {
       throw new ActivityException(409, "当前状态不能编辑或重新提交，请刷新页面");
     }
   }
 
-  private ActivityDraft validate(ActivityDraft draft) {
+  ActivityDraft validate(ActivityDraft draft) {
     return new ActivityDraft(text(draft.name(), "活动名称", 200),
         text(draft.description(), "活动简介", 10000));
   }
 
-  private ManagedSession validate(long id, SessionDraft draft, PublicationStatus status) {
+  private ManagedSession validate(long id, SessionDraft draft, PublicationStatus status,
+      long reviewVersion) {
     int capacity;
     try {
       capacity = Integer.parseInt(draft.capacity() == null ? "" : draft.capacity().strip());
@@ -198,12 +201,13 @@ public class ActivityManagementService {
       throw new ActivityException(400, "名额必须是非负整数");
     }
     ManagedSession session = new ManagedSession(id, time(draft.startTime()), time(draft.endTime()),
-        time(draft.deadline()), text(draft.location(), "场次地点", 200), capacity, status);
+        time(draft.deadline()), text(draft.location(), "场次地点", 200), capacity, status,
+        reviewVersion);
     validate(session);
     return session;
   }
 
-  private void validate(ManagedSession session) {
+  void validate(ManagedSession session) {
     if (session.capacity() < 0) {
       throw new ActivityException(400, "名额必须是非负整数");
     }
@@ -234,7 +238,7 @@ public class ActivityManagementService {
     return value;
   }
 
-  private <T> T execute(long actorId, Long activityId, Long sessionId, String action,
+  <T> T execute(long actorId, Long activityId, Long sessionId, String action,
       Supplier<T> operation) {
     try {
       // 所有写入口先锁活动，再按编号锁场次，读取最新状态后一起提交业务和日志。

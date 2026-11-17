@@ -62,6 +62,7 @@ abstract class WorkshopTestBase {
     }
     executeScript("db/V001__schema.sql");
     executeScript("db/V003__review_version.sql");
+    executeScript("db/V004__session_review_version.sql");
   }
 
   void executeScript(String classpath) {

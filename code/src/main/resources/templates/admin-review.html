@@ -13,16 +13,34 @@
     <a class="management-back" href="/admin/reviews">← 审核管理</a>
     <div class="page-head">
       <h1 th:text="${activity.name}">活动名称</h1>
-      <span class="status" th:classappend="${activity.status.name()}" th:text="${activity.status.label}">待审核</span>
+      <span class="status PENDING" th:text="${reviewKind == 'FIRST' ? '首次发布审核'
+          : (reviewKind == 'REVISION' ? '内容修改审核' : '新增场次审核')}">审核类型</span>
     </div>
     <p class="muted" th:text="'组织者：' + ${activity.organizerName}">组织者</p>
     <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
     <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
-    <section class="management-card">
+    <section class="management-card" th:if="${reviewKind != 'REVISION'}">
       <h2>活动简介</h2>
       <p class="activity-description" th:text="${activity.description}">简介</p>
     </section>
-    <section class="management-card">
+    <section class="management-card" th:if="${reviewKind == 'REVISION'}">
+      <h2>活动内容修改</h2>
+      <p class="muted">通过后以本次修改替换公开内容；驳回后保留当前公开内容。</p>
+      <div class="revision-comparison">
+        <div class="revision-panel">
+          <p class="revision-label">当前公开内容</p>
+          <h3 class="revision-name" th:text="${activity.name}">当前名称</h3>
+          <p class="activity-description" th:text="${activity.description}">当前简介</p>
+        </div>
+        <div class="revision-panel" th:if="${activity.revisionPending}">
+          <p class="revision-label">本次待审内容</p>
+          <h3 class="revision-name" th:text="${activity.pendingName}">待审名称</h3>
+          <p class="activity-description" th:text="${activity.pendingDescription}">待审简介</p>
+        </div>
+        <p class="muted" th:unless="${activity.revisionPending}">本次内容修改已处理。</p>
+      </div>
+    </section>
+    <section class="management-card" th:if="${reviewKind == 'FIRST'}">
       <h2>场次安排 <small th:text="'共 ' + ${#lists.size(activity.sessions)} + ' 个'">场次数量</small></h2>
       <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">暂无场次。</p>
       <article class="review-session" th:each="item : ${activity.sessions}">
@@ -38,11 +56,29 @@
         </dl>
       </article>
     </section>
-    <form class="management-actions review-actions" th:if="${activity.status.name() == 'PENDING'}"
-        th:action="@{/admin/reviews/{id}(id=${activity.id})}" method="post">
-      <input type="hidden" name="reviewVersion" th:value="${activity.reviewVersion}">
-      <button class="secondary" type="submit" name="decision" value="reject">驳回</button>
-      <button type="submit" name="decision" value="approve">审核通过并发布</button>
+    <section class="management-card" th:if="${reviewKind == 'SESSION'}">
+      <h2>本次审核场次</h2>
+      <article class="review-session">
+        <div class="page-head">
+          <h3 th:text="${#temporals.format(reviewSession.startTime, 'yyyy-MM-dd HH:mm')} + ' → '
+              + ${#temporals.format(reviewSession.endTime, 'yyyy-MM-dd HH:mm')}">场次时间</h3>
+          <span class="status" th:classappend="${reviewSession.status.name()}"
+              th:text="${reviewSession.status.label}">待审核</span>
+        </div>
+        <dl class="review-facts">
+          <div><dt>活动地点</dt><dd th:text="${reviewSession.location}">地点</dd></div>
+          <div><dt>报名截止</dt><dd th:text="${#temporals.format(reviewSession.deadline, 'yyyy-MM-dd HH:mm:ss')}">截止</dd></div>
+          <div><dt>场次容量</dt><dd th:text="${reviewSession.capacity} + ' 人'">容量</dd></div>
+        </dl>
+      </article>
+    </section>
+    <form class="management-actions review-actions" th:if="${canReview}"
+        th:action="@{${reviewAction}}" method="post">
+      <input type="hidden" name="reviewVersion" th:value="${reviewVersion}">
+      <button class="secondary" type="submit" name="decision" value="reject"
+          th:text="${reviewKind == 'REVISION' ? '驳回内容修改' : (reviewKind == 'SESSION' ? '驳回此场次' : '驳回活动')}">驳回</button>
+      <button type="submit" name="decision" value="approve"
+          th:text="${reviewKind == 'REVISION' ? '通过并更新内容' : (reviewKind == 'SESSION' ? '通过并发布此场次' : '通过并发布活动')}">审核通过并发布</button>
     </form>
   </main>
 </body>

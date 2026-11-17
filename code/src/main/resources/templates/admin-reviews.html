@@ -11,20 +11,20 @@
   <div th:replace="~{fragments/header :: bar('review')}"></div>
   <main class="sheet management">
     <div class="page-head"><h1>审核管理</h1><span class="free"
-        th:text="${#lists.size(activities)} + ' 个待审核活动'">待审核数量</span></div>
-    <p class="muted">核对活动内容与场次安排，审核通过后自动发布。</p>
+        th:text="${#lists.size(requests)} + ' 个待审核申请'">待审核数量</span></div>
+    <p class="muted">核对首次发布、内容修改和新增场次申请，审核通过后自动更新。</p>
     <p class="error" role="alert" th:if="${message}" th:text="${message}"></p>
     <p class="ok" role="status" th:if="${notice}" th:text="${notice}"></p>
     <section class="management-card">
-      <h2>待审核活动</h2>
-      <p class="empty" th:if="${#lists.isEmpty(activities)}">当前没有待审核活动。</p>
-      <div class="activity-row" th:each="item : ${activities}">
+      <h2>待审核申请</h2>
+      <p class="empty" th:if="${#lists.isEmpty(requests)}">当前没有待审核申请。</p>
+      <div class="activity-row" th:each="item : ${requests}">
         <div>
-          <a class="activity-title" th:href="@{/admin/reviews/{id}(id=${item.id})}"
+          <a class="activity-title" th:href="@{${item.reviewUrl()}}"
               th:text="${item.name}">活动名称</a>
-          <p class="muted" th:text="${item.organizerName} + ' · ' + ${item.sessionCount} + ' 个场次'">组织者与场次</p>
+          <p class="muted" th:text="${item.organizerName}">组织者</p>
         </div>
-        <span class="status PENDING" th:text="${item.status.label}">待审核</span>
+        <span class="status PENDING" th:text="${item.kind.label}">审核类型</span>
       </div>
     </section>
   </main>
