@@ -42,9 +42,9 @@ UI 使用 SVG 制作并在 Pixso 中整理，统一采用 NJU 校徽和紫色强
 
 ## 界面预览
 
-已发布活动内容修改审核（T2-B 实现）：
+组织者活动管理与审核状态（T2-B 实现）：
 
-![活动内容修改审核](code/docs/t2b-review.png)
+![组织者活动管理](code/docs/t2b-organizer-status.png)
 
 ## 目录结构
 

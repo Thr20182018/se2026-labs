@@ -56,12 +56,14 @@ class PublishedActivityHttpTest extends WorkshopTestBase {
     assertTrue(publicPage.contains("原版蓝晒工作坊"));
     assertFalse(publicPage.contains("新版蓝晒工作坊"));
     assertTrue(body(organizer, "/organizer/activities/10").contains("新版蓝晒工作坊"));
+    assertTrue(body(organizer, "/organizer/activities").contains("内容修改：待审核"));
     assertTrue(body(admin, "/admin/reviews/10/revision").contains("新版蓝晒工作坊"));
     decide("/revision", "approve", version("activities", 10));
     publicPage = body(participant, "/workshops");
     assertTrue(publicPage.contains("新版蓝晒工作坊"));
     assertTrue(publicPage.contains("新版蓝晒工作坊的制作说明"));
     assertFalse(publicPage.contains("原版蓝晒工作坊"));
+    assertTrue(body(organizer, "/organizer/activities").contains("内容修改：已发布"));
     assertRevisionCleared();
     var change = jdbc.queryForMap("SELECT before_value, after_value FROM operation_logs"
         + " WHERE action = 'APPROVE_REVISION' AND result = 'SUCCESS'");
@@ -78,8 +80,13 @@ class PublishedActivityHttpTest extends WorkshopTestBase {
     decide("/revision", "reject", oldVersion);
     assertRevisionCleared();
     assertTrue(body(participant, "/workshops").contains("原版蓝晒工作坊"));
-    assertFalse(body(organizer, "/organizer/activities/10").contains("驳回版名称"));
+    String organizerPage = body(organizer, "/organizer/activities/10");
+    assertFalse(organizerPage.contains("驳回版名称"));
+    assertTrue(organizerPage.contains("本次内容修改已驳回，当前公开内容保持不变，可修改后重新提交。"));
+    assertTrue(body(organizer, "/organizer/activities").contains("内容修改：已驳回"));
     submitRevision("重提版名称");
+    assertFalse(body(organizer, "/organizer/activities/10").contains("本次内容修改已驳回"));
+    assertTrue(body(organizer, "/organizer/activities").contains("内容修改：待审核"));
     assertEquals(oldVersion + 1, version("activities", 10));
     mvc.perform(review(admin, "/revision", "approve", oldVersion))
         .andExpect(status().isConflict());
@@ -87,8 +94,38 @@ class PublishedActivityHttpTest extends WorkshopTestBase {
     assertFalse(body(participant, "/workshops").contains("重提版名称"));
     decide("/revision", "approve", oldVersion + 1);
     assertTrue(body(participant, "/workshops").contains("重提版名称"));
+    assertTrue(body(organizer, "/organizer/activities").contains("内容修改：已发布"));
     assertEquals(1, logs("REJECT_REVISION", "SUCCESS"));
     assertEquals(1, logs("APPROVE_REVISION", "FAILURE"));
+  }
+
+  @Test
+  void organizerListSummarizesOnlySubmittedNewSessions() throws Exception {
+    String list = body(organizer, "/organizer/activities");
+    assertFalse(list.contains("内容修改："));
+    assertFalse(list.contains("新增场次："));
+    addSession("尚未提交的草稿");
+    assertFalse(body(organizer, "/organizer/activities").contains("新增场次："));
+    long first = addSession("第一待审场次");
+    long second = addSession("第二待审场次");
+    long rejected = addSession("驳回场次");
+    long published = addSession("通过场次");
+    for (long id : new long[] {first, second, rejected, published}) {
+      submitSession(id);
+    }
+    decide("/sessions/" + rejected, "reject", version("sessions", rejected));
+    decide("/sessions/" + published, "approve", version("sessions", published));
+    list = body(organizer, "/organizer/activities");
+    assertTrue(list.contains("活动：已发布"));
+    assertTrue(list.contains("新增场次："));
+    assertTrue(list.contains("待审核 2"));
+    assertTrue(list.contains("已驳回 1"));
+    assertTrue(list.contains("已发布 1"));
+    assertFalse(list.contains("已发布 2"));
+    submitSession(rejected);
+    list = body(organizer, "/organizer/activities");
+    assertTrue(list.contains("待审核 3"));
+    assertFalse(list.contains("已驳回 1"));
   }
 
   @Test

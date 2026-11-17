@@ -37,4 +37,6 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 
 已发布活动可以提交名称和简介的修改申请，审核期间继续展示原内容，通过后替换。组织者也可以新增场次并单独提交审核，通过后该场次发布。管理员在同一待审核列表处理首次发布、内容修改和新增场次三类申请。
 
+组织者的“我的活动”同时展示活动状态、最近一次内容修改结果，以及新增场次各审核状态的数量；未提交过的类别隐藏。内容修改被驳回后，详情页持续显示反馈，重新提交后更新为待审核。
+
 阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` / `PublishedActivityService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`。对应测试为 `ActivityPublishingHttpTest` 和 `PublishedActivityHttpTest`。

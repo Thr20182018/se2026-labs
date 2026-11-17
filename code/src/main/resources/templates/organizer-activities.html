@@ -23,8 +23,25 @@
             <a class="activity-title" th:href="@{/organizer/activities/{id}(id=${item.id})}"
                 th:text="${item.name}">活动名称</a>
             <p class="muted" th:text="${item.sessionCount} + ' 个场次'">场次数量</p>
+            <div class="activity-review-statuses"
+                th:if="${item.revisionStatus != null or item.hasNewSessionReviews()}">
+              <div th:if="${item.revisionStatus != null}">
+                <span class="status" th:classappend="${item.revisionStatus.name()}"
+                    th:text="'内容修改：' + ${item.revisionStatus.label}">内容修改状态</span>
+              </div>
+              <div class="session-review-statuses" th:if="${item.hasNewSessionReviews()}">
+                <span class="muted">新增场次：</span>
+                <span class="status PENDING" th:if="${item.newSessionsPending > 0}"
+                    th:text="'待审核 ' + ${item.newSessionsPending}">待审核数量</span>
+                <span class="status REJECTED" th:if="${item.newSessionsRejected > 0}"
+                    th:text="'已驳回 ' + ${item.newSessionsRejected}">已驳回数量</span>
+                <span class="status PUBLISHED" th:if="${item.newSessionsPublished > 0}"
+                    th:text="'已发布 ' + ${item.newSessionsPublished}">已发布数量</span>
+              </div>
+            </div>
           </div>
-          <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">草稿</span>
+          <span class="status" th:classappend="${item.status.name()}"
+              th:text="'活动：' + ${item.status.label}">活动状态</span>
         </div>
       </section>
       <section class="management-card">

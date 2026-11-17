@@ -32,8 +32,12 @@
     <section class="management-card" th:if="${activity.published()}">
       <div class="page-head">
         <h2 th:text="${activity.revisionPending} ? '本次待审内容' : '修改活动内容'">修改活动内容</h2>
-        <span class="status PENDING" th:if="${activity.revisionPending}">内容修改待审核</span>
+        <span class="status" th:if="${activity.revisionStatus != null}"
+            th:classappend="${activity.revisionStatus.name()}"
+            th:text="'内容修改：' + ${activity.revisionStatus.label}">内容修改状态</span>
       </div>
+      <p class="revision-feedback" role="status"
+          th:if="${activity.revisionStatus != null and activity.revisionStatus.name() == 'REJECTED'}">本次内容修改已驳回，当前公开内容保持不变，可修改后重新提交。</p>
       <p class="muted">名称和简介修改通过审核后更新，审核期间继续展示当前公开内容。</p>
       <div th:if="${activity.revisionPending}">
         <h3 class="revision-name" th:text="${activity.pendingName}">待审名称</h3>
@@ -54,7 +58,7 @@
       <details class="session-editor" th:each="item : ${activity.sessions}"
           th:open="${editSessionId == item.id}">
         <summary>
-          <span><strong th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')}">开始时间</strong>
+          <span><span th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')}">开始时间</span>
             <span th:text="' → ' + ${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm')}">结束时间</span>
             <span class="session-place" th:text="${item.location}">地点</span></span>
           <span class="status" th:classappend="${item.status.name()}" th:text="${item.status.label}">草稿</span>

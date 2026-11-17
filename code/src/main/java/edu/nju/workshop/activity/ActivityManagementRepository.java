@@ -14,6 +14,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ActivityManagementRepository {
 
+  // 已处理的内容修改从同事务保存的审核日志读取，重新提交后优先展示待审核。
+  private static final String REVISION_STATUS = """
+      CASE WHEN a.revision_pending = 1 THEN 'PENDING' ELSE (
+        SELECT CASE action WHEN 'APPROVE_REVISION' THEN 'PUBLISHED' ELSE 'REJECTED' END
+        FROM operation_logs WHERE activity_id = a.id AND result = 'SUCCESS'
+          AND action IN ('APPROVE_REVISION', 'REJECT_REVISION')
+        ORDER BY id DESC LIMIT 1
+      ) END AS revision_status
+      """;
+
   private final JdbcTemplate jdbc;
 
   public ActivityManagementRepository(JdbcTemplate jdbc) {
@@ -57,26 +67,40 @@ public class ActivityManagementRepository {
 
   private List<ActivitySummary> summaries(String condition, Object value) {
     return jdbc.query("""
-        SELECT a.id, a.name, a.publication_status, u.display_name,
-          (SELECT COUNT(*) FROM sessions s WHERE s.activity_id = a.id) AS session_count
+        SELECT a.id, a.name, a.publication_status, u.display_name, %s,
+          COALESCE(s.session_count, 0) AS session_count,
+          COALESCE(s.pending_count, 0) AS pending_count,
+          COALESCE(s.rejected_count, 0) AS rejected_count,
+          COALESCE(s.published_count, 0) AS published_count
         FROM activities a JOIN users u ON u.id = a.organizer_id
-        """ + " WHERE " + condition + " ORDER BY a.id DESC",
+        LEFT JOIN (
+          SELECT activity_id, COUNT(*) AS session_count,
+            SUM(review_version > 0 AND publication_status = 'PENDING') AS pending_count,
+            SUM(review_version > 0 AND publication_status = 'REJECTED') AS rejected_count,
+            SUM(review_version > 0 AND publication_status = 'PUBLISHED') AS published_count
+          FROM sessions GROUP BY activity_id
+        ) s ON s.activity_id = a.id
+        """.formatted(REVISION_STATUS) + " WHERE " + condition + " ORDER BY a.id DESC",
         (rs, row) -> new ActivitySummary(rs.getLong("id"), rs.getString("name"),
             PublicationStatus.valueOf(rs.getString("publication_status")),
-            rs.getInt("session_count"), rs.getString("display_name")), value);
+            rs.getInt("session_count"), rs.getString("display_name"), revisionStatus(rs),
+            rs.getInt("pending_count"), rs.getInt("rejected_count"),
+            rs.getInt("published_count")), value);
   }
 
   Optional<ManagedActivity> find(long id, boolean lock) {
     String locking = lock ? " FOR UPDATE" : "";
     List<ManagedActivity> rows = jdbc.query("""
-        SELECT a.*, (SELECT display_name FROM users u WHERE u.id = a.organizer_id) AS owner_name
+        SELECT a.*, (SELECT display_name FROM users u WHERE u.id = a.organizer_id) AS owner_name,
+          %s
         FROM activities a WHERE a.id = ?
-        """ + locking, (rs, row) -> new ManagedActivity(
+        """.formatted(REVISION_STATUS) + locking, (rs, row) -> new ManagedActivity(
             rs.getLong("id"), rs.getString("name"), rs.getString("description"),
             rs.getLong("organizer_id"), rs.getString("owner_name"),
             PublicationStatus.valueOf(rs.getString("publication_status")),
             rs.getLong("review_version"), rs.getString("pending_name"),
-            rs.getString("pending_description"), rs.getBoolean("revision_pending"), List.of()), id);
+            rs.getString("pending_description"), rs.getBoolean("revision_pending"),
+            revisionStatus(rs), List.of()), id);
     if (rows.isEmpty()) {
       return Optional.empty();
     }
@@ -87,7 +111,7 @@ public class ActivityManagementRepository {
     return Optional.of(new ManagedActivity(activity.id(), activity.name(), activity.description(),
         activity.organizerId(), activity.organizerName(), activity.status(),
         activity.reviewVersion(), activity.pendingName(), activity.pendingDescription(),
-        activity.revisionPending(), sessions));
+        activity.revisionPending(), activity.revisionStatus(), sessions));
   }
 
   long create(long actorId, ActivityDraft draft) {
@@ -171,6 +195,11 @@ public class ActivityManagementRepository {
       return statement;
     }, keys);
     return Objects.requireNonNull(keys.getKey()).longValue();
+  }
+
+  private PublicationStatus revisionStatus(ResultSet rs) throws SQLException {
+    String value = rs.getString("revision_status");
+    return value == null ? null : PublicationStatus.valueOf(value);
   }
 
   private ManagedSession session(ResultSet rs) throws SQLException {
