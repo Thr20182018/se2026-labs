@@ -55,19 +55,19 @@ public class AttendanceService {
         if (session.activityId() != activityId) {
           throw new ActivityException(403, "无权访问该场次");
         }
-        LocalDateTime now = now();
-        if (!activity.published() || session.status() != PublicationStatus.PUBLISHED) {
-          throw new ActivityException(409, "活动或场次未发布或已取消，不能签到");
-        }
-        if (!now.isBefore(session.end())) {
-          throw new ActivityException(409, "场次已结束，不能签到");
-        }
         var registration = repository.registration(sessionId, registrationId);
         if (registration == null) {
           throw new ActivityException(404, "该场次不存在此报名记录");
         }
         if (registration.status() == RegistrationStatus.CHECKED_IN) {
           return "已签到";
+        }
+        LocalDateTime now = now();
+        if (!activity.published() || session.status() != PublicationStatus.PUBLISHED) {
+          throw new ActivityException(409, "活动或场次未发布或已取消，不能签到");
+        }
+        if (!now.isBefore(session.end())) {
+          throw new ActivityException(409, "场次已结束，不能签到");
         }
         if (registration.status() != RegistrationStatus.REGISTERED) {
           throw new ActivityException(409, "只有报名成功的记录可以签到");

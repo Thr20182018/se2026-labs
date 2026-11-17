@@ -11,7 +11,6 @@
   <div th:replace="~{fragments/header :: bar('manage')}"></div>
   <main class="sheet management">
     <div class="page-head"><h1>活动管理</h1><span class="free">全平台活动</span></div>
-    <p class="muted">查看活动与场次，处理尚未结束的活动取消。</p>
     <section class="management-card">
       <h2>全部活动 <small th:text="'共 ' + ${#lists.size(activities)} + ' 个'">共 0 个</small></h2>
       <p class="empty" th:if="${#lists.isEmpty(activities)}">暂无活动。</p>

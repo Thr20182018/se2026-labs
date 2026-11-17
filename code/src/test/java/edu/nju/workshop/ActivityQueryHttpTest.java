@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
@@ -243,6 +244,56 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     assertTrue(summaryText(row).contains(listTime), "列表应显示完整时间范围");
     assertTrue(row.substring(row.indexOf("</summary>")).contains(detailTime),
         "详情应显示完整时间范围");
+  }
+
+  @Test
+  void availableSessionsComeFirstAndSelectedLinksFollowTheSamePaging() throws Exception {
+    activity(1, 2, "排序验证", "PUBLISHED", null, null);
+    for (int id = 1; id <= 8; id++) {
+      String day = String.format("2026-11-%02d", id);
+      session(id, 1, day + " 14:00:00", day + " 16:00:00", day + " 10:00:00",
+          1, "PUBLISHED");
+    }
+    session(9, 1, "2026-11-13 14:00:00", "2026-11-13 16:00:00", "2026-11-12 18:00:00",
+        1, "PUBLISHED");
+    session(10, 1, "2026-11-12 14:00:00", "2026-11-12 16:00:00", "2026-11-11 18:00:00",
+        0, "PUBLISHED");
+    session(11, 1, "2026-11-13 14:00:00", "2026-11-13 16:00:00", "2026-11-12 18:00:00",
+        1, "PUBLISHED");
+    session(12, 1, "2026-11-11 14:00:00", "2026-11-11 16:00:00", "2026-11-10 18:00:00",
+        1, "CANCELLED");
+    List<Long> first = List.of(10L, 9L, 11L, 1L, 2L, 3L, 4L, 5L);
+    List<Long> second = List.of(6L, 7L, 8L, 12L);
+    assertEquals(first, listedIds(search("", "", "", "", "1")));
+    assertEquals(second, listedIds(search("", "", "", "", "2")));
+    String active = body(participant, "/workshops?selected=9");
+    assertEquals(first, listedIds(active));
+    assertTrue(isOpen(sessionMarkup(active, 9)));
+    String closed = body(participant, "/workshops?selected=6");
+    assertEquals(second, listedIds(closed));
+    assertTrue(isOpen(sessionMarkup(closed, 6)));
+    String filtered = body(participant,
+        "/workshops?keyword=排序&availability=closed&dateFrom=2026-11-05&selected=6");
+    assertEquals(List.of(5L, 6L, 7L, 8L), listedIds(filtered));
+    assertTrue(isOpen(sessionMarkup(filtered, 6)));
+  }
+
+  @Test
+  void deadlineEqualityMovesTheSessionBehindThoseStillAcceptingApplications() throws Exception {
+    activity(1, 2, "截止排序", "PUBLISHED", null, null);
+    session(1, 1, "2026-11-11 14:00:00", "2026-11-11 16:00:00", "2026-11-10 10:00:00",
+        1, "PUBLISHED");
+    session(2, 1, "2026-11-12 14:00:00", "2026-11-12 16:00:00", "2026-11-11 18:00:00",
+        1, "PUBLISHED");
+    clock.setBeijing(LocalDateTime.of(2026, 11, 10, 9, 59, 59));
+    assertEquals(List.of(1L, 2L), listedIds(search("", "", "", "")));
+    clock.setBeijing(LocalDateTime.of(2026, 11, 10, 10, 0));
+    assertEquals(List.of(2L, 1L), listedIds(search("", "", "", "")));
+  }
+
+  private List<Long> listedIds(String page) {
+    return Pattern.compile("id=\"session-(\\d+)\"").matcher(page).results()
+        .map(match -> Long.parseLong(match.group(1))).toList();
   }
 
   private String sessionMarkup(String page, long id) {

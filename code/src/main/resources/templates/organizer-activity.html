@@ -39,7 +39,6 @@
       </div>
       <p class="revision-feedback" role="status"
           th:if="${activity.revisionStatus != null and activity.revisionStatus.name() == 'REJECTED'}">本次内容修改已驳回，当前公开内容保持不变，可修改后重新提交。</p>
-      <p class="muted">名称和简介修改通过审核后更新，审核期间继续展示当前公开内容。</p>
       <div th:if="${activity.revisionPending}">
         <h3 class="revision-name" th:text="${activity.pendingName}">待审名称</h3>
         <p class="activity-description" th:text="${activity.pendingDescription}">待审简介</p>
@@ -55,7 +54,7 @@
     <section class="management-card">
       <div class="page-head"><h2>活动场次</h2><span class="muted"
           th:text="'共 ' + ${#lists.size(activity.sessions)} + ' 个场次'">场次数量</span></div>
-      <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">添加至少一个场次后即可提交审核。</p>
+      <p class="empty" th:if="${#lists.isEmpty(activity.sessions)}">暂无场次。</p>
       <details class="session-editor" th:each="item : ${activity.sessions}"
           th:id="'session-' + ${item.id}" th:open="${editSessionId == item.id}">
         <summary>
@@ -82,7 +81,6 @@
         <form class="session-submit" th:if="${activity.published() and item.editable()}"
             th:action="@{/organizer/activities/{id}/sessions/{sid}/submit(id=${activity.id},sid=${item.id})}"
             method="post">
-          <p class="muted">保存后提交此场次，审核通过后自动发布。</p>
           <button type="submit">提交此场次审核</button>
         </form>
         <dl class="review-facts" th:unless="${(activity.editable() or activity.published()) and item.editable()}">
@@ -96,7 +94,6 @@
           <label>调整容量<input type="number" name="capacity" min="0" max="2147483647"
               required th:value="${item.capacity}"></label>
           <button type="submit">保存容量</button>
-          <span class="muted">增加名额后按候补顺序自动递补。</span>
         </form>
         <div class="session-operations">
           <a class="management-link"
@@ -113,7 +110,6 @@
     </section>
     <section class="management-card" th:if="${activity.cancellable(now)}">
       <h2>取消活动</h2>
-      <p class="muted">取消尚未结束的场次及其有效报名，已结束场次与记录保留。</p>
       <form class="lifecycle-form" th:action="@{/organizer/activities/{id}/cancel(id=${activity.id})}"
           method="post">
         <button class="danger-button" type="submit">取消整个活动</button>
@@ -121,7 +117,6 @@
     </section>
     <section class="management-card" th:if="${activity.editable() or activity.published()}">
       <h2>添加场次</h2>
-      <p class="muted" th:if="${activity.published()}">新场次保存为草稿，需单独提交审核。</p>
       <form class="management-form session-fields"
           th:action="@{/organizer/activities/{id}/sessions(id=${activity.id})}" method="post">
         <label>开始时间<input type="datetime-local" name="startTime" step="1" required
@@ -139,7 +134,6 @@
     </section>
     <form class="submit-review" th:if="${activity.editable()}"
         th:action="@{/organizer/activities/{id}/submit(id=${activity.id})}" method="post">
-      <span class="muted">确认已保存的活动与场次信息后，提交管理员审核。</span>
       <button type="submit" th:disabled="${#lists.isEmpty(activity.sessions)}">提交审核</button>
     </form>
   </main>

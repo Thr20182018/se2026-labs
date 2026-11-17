@@ -34,7 +34,7 @@ T4＋T5 启动前执行一次 V005，记录场次取消前是否已发布，保�
 
 Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify` 运行 JUnit 和 Checkstyle，测试只在校验通过的 `workshop_test` 库重建表。
 
-查询页以行展示活动名称、时间、地点和报名状态。点击场次原地展开详情，再次点击收起，切换场次时自动关闭上一项；支持 Enter、空格和 Esc 操作。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。
+查询页以行展示活动名称、时间、地点和报名状态。可报名和可候补的场次优先，已截止和已取消的排在后面，各组按开始时间排序。点击场次原地展开详情，再次点击收起，切换场次时自动关闭上一项；支持 Enter、空格和 Esc 操作。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。
 
 组织者 `su_qing` 在“活动管理”创建草稿、添加多个场次并提交审核；管理员 `he_qm` 在“审核管理”通过或驳回。通过后，参与者 `lin_zy` 可在查询页看到场次；驳回后，组织者可以修改并重新提交。三个演示账号均使用上述演示密码。
 
@@ -44,7 +44,7 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 
 阅读发布流程可从 `ActivityManagementController` → `ActivityManagementService` / `PublishedActivityService` → `ActivityManagementRepository` 开始，日志事务见 `audit/`。对应测试为 `ActivityPublishingHttpTest` 和 `PublishedActivityHttpTest`。
 
-参与者在场次详情中报名；名额已满或已有候补者时，可主动加入候补。提交结果原地显示，“我的报名”列出本人的记录、状态和候补序号。演示参与者为 `lin_zy`、`chen_an`、`wang_he` 和 `xu_lin`，密码同上。
+参与者在场次详情中报名；名额已满或已有候补者时，可主动加入候补。提交结果原地显示，“我的报名”列出本人的记录和状态，候补序号仅在后台用于排序。演示参与者为 `lin_zy`、`chen_an`、`wang_he` 和 `xu_lin`，密码同上。
 
 报名按服务器接收请求的时间判断截止。截止前已收到的请求完成后，后台每 5 秒检查并将剩余候补转为“候补未成功”。T3 沿用现有表结构，无需新增数据库升级脚本。
 

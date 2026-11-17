@@ -88,16 +88,6 @@ h1, h2, h3 { font-family: var(--font-heading); }
 }
 .hero h1 { font-size: 40px; line-height: 1.25; margin: 12px 0; }
 .eyebrow { letter-spacing: .14em; font-size: 12px; opacity: .8; }
-.hero-notes { display: flex; gap: 16px; align-items: end; margin-top: 48px; }
-.hero-card, .hero-chip {
-  background: #efe4f7;
-  color: var(--purple-deep);
-  border-radius: 18px;
-  padding: 22px;
-}
-.hero-card { width: 58%; min-height: 140px; transform: rotate(-6deg); }
-.hero-chip { background: #fff; margin-bottom: 18px; }
-.hero-chip span { display: block; color: var(--purple); font-size: 12px; margin-top: 8px; }
 .hero-foot { position: absolute; left: 42px; bottom: 28px; opacity: .85; }
 
 .panel {
@@ -107,7 +97,7 @@ h1, h2, h3 { font-family: var(--font-heading); }
   align-self: center;
   box-shadow: 0 10px 30px rgba(84, 36, 116, .06);
 }
-.panel h2 { margin: 0 0 4px; }
+.panel h2 { margin: 0 0 20px; }
 .muted { color: var(--muted); }
 .panel form, .filters { display: grid; gap: 14px; }
 .panel label, .filters label { display: grid; gap: 6px; font-size: 14px; }

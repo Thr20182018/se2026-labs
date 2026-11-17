@@ -49,7 +49,6 @@
     </section>
     <section class="management-card" th:if="${activity.cancellable(now)}">
       <h2>取消活动</h2>
-      <p class="muted">取消尚未结束的场次及其有效报名，已结束场次与记录保留。</p>
       <form class="lifecycle-form" th:action="@{/admin/activities/{id}/cancel(id=${activity.id})}"
           method="post">
         <button class="danger-button" type="submit">取消整个活动</button>

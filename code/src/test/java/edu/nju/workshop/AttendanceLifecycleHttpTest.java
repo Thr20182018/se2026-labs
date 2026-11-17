@@ -56,6 +56,28 @@ class AttendanceLifecycleHttpTest extends LifecycleTestBase {
   }
 
   @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void duplicateCheckInAfterEndReturnsExistingResultEvenWhenParentIsCancelled(boolean cancelParent)
+      throws Exception {
+    registration(10, 1, 1, "REGISTERED");
+    submit(write(2, checkInPath(1, 10)), 200);
+    clock.setBeijing(END);
+    if (cancelParent) {
+      session(2, 1, "2026-11-13 14:00:00", "2026-11-13 16:00:00",
+          "2026-11-12 18:00:00", 1, "PUBLISHED");
+      submit(write(3, "/admin/activities/1/cancel"), 200);
+      assertEquals("CANCELLED", publication("activities", 1));
+    }
+    var duplicate = submit(write(2, checkInPath(1, 10)), 200);
+    assertEquals("已签到", duplicate.path("message").asText());
+    assertEquals("CHECKED_IN", state(10));
+    assertEquals(NOW, checkedInAt(10));
+    assertEquals(1, occupied(1));
+    assertEquals(1, logs("CHECK_IN", "SUCCESS"));
+    assertEquals(0, logs("CHECK_IN", "FAILURE"));
+  }
+
+  @ParameterizedTest
   @ValueSource(strings = {"WAITLIST", "CANCELLED", "WAITLIST_EXPIRED", "ABSENT"})
   void checkInRejectsEveryOtherRegistrationState(String state) throws Exception {
     registration(10, 1, 1, state);

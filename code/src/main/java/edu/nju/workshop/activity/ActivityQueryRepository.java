@@ -23,6 +23,9 @@ public class ActivityQueryRepository {
       "s.id, a.name, a.description, s.start_time, s.end_time, s.registration_deadline,"
           + " s.location, s.capacity, COALESCE(r.registered_count, 0) AS registered_count";
 
+  private static final String ORDER = "CASE WHEN s.publication_status = 'PUBLISHED'"
+      + " AND s.registration_deadline > ? THEN 0 ELSE 1 END, s.start_time ASC, s.id ASC";
+
   private static final String FROM =
       " FROM sessions s"
           + " JOIN activities a ON a.id = s.activity_id"
@@ -44,38 +47,33 @@ public class ActivityQueryRepository {
         "SELECT COUNT(*)" + FROM + where, Integer.class, filters.toArray());
     int page = Math.min(query.page(), Math.max(1, (total + pageSize - 1) / pageSize));
     if (selected > 0) {
-      page = selectedPage(where, filters, selected, pageSize, page);
+      page = selectedPage(where, filters, now, selected, pageSize, page);
     }
     List<Object> args = new ArrayList<>();
     args.add(now);
     args.addAll(filters);
+    args.add(now);
     args.add(pageSize);
     args.add((page - 1L) * pageSize);
     List<SessionRow> rows = jdbc.query(
         "SELECT " + COLUMNS + ", " + STATUS + " AS availability" + FROM + where
-            + " ORDER BY s.start_time ASC, s.id ASC LIMIT ? OFFSET ?",
+            + " ORDER BY " + ORDER + " LIMIT ? OFFSET ?",
         ActivityQueryRepository::map,
         args.toArray());
     return new QueryPage(rows, total, page, pageSize);
   }
 
-  private int selectedPage(String where, List<Object> filters, long selected, int pageSize,
-      int fallback) {
-    List<Object> args = new ArrayList<>(filters);
+  private int selectedPage(String where, List<Object> filters, LocalDateTime now, long selected,
+      int pageSize, int fallback) {
+    List<Object> args = new ArrayList<>();
+    args.add(now);
+    args.addAll(filters);
     args.add(selected);
-    var dates = jdbc.query("SELECT s.start_time" + FROM + where + " AND s.id = ?",
-        (rs, row) -> rs.getObject(1, LocalDateTime.class), args.toArray());
-    if (dates.isEmpty()) {
-      return fallback;
-    }
-    args = new ArrayList<>(filters);
-    args.add(dates.getFirst());
-    args.add(dates.getFirst());
-    args.add(selected);
-    int preceding = jdbc.queryForObject("SELECT COUNT(*)" + FROM + where
-        + " AND (s.start_time < ? OR (s.start_time = ? AND s.id < ?))",
-        Integer.class, args.toArray());
-    return preceding / pageSize + 1;
+    var positions = jdbc.query("SELECT row_position FROM (SELECT s.id,"
+        + " ROW_NUMBER() OVER (ORDER BY " + ORDER + ") AS row_position"
+        + FROM + where + ") ranked WHERE id = ?", (rs, row) -> rs.getLong(1), args.toArray());
+    return positions.isEmpty() ? fallback
+        : Math.toIntExact((positions.getFirst() - 1) / pageSize + 1);
   }
 
   private static String where(ActivityQuery query, LocalDateTime now, List<Object> args) {

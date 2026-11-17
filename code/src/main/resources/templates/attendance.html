@@ -30,7 +30,6 @@
     </section>
     <section class="management-card">
       <h2>报名记录</h2>
-      <p class="muted">保留每次申请和首次签到时间；场次结束后，未签到的报名会自动记为缺席。</p>
       <p class="empty" th:if="${#lists.isEmpty(attendees)}">此场次暂无报名记录。</p>
       <div class="attendance-scroll" th:unless="${#lists.isEmpty(attendees)}">
         <table class="attendance-table">

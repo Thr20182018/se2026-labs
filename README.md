@@ -42,11 +42,11 @@ UI 使用 SVG 制作并在 Pixso 中整理，统一采用 NJU 校徽和紫色强
 
 ## 界面预览
 
-参与者报名与候补（T3 实现）：
+发现工作坊：
 
-![参与者报名与候补](code/docs/t3-registration.png)
+![发现工作坊](code/docs/t45-discovery.png)
 
-组织者签到名单（T4＋T5 实现）：
+组织者签到名单：
 
 ![组织者签到名单](code/docs/t45-attendance.png)
 
