@@ -48,6 +48,7 @@ abstract class WorkshopTestBase {
    */
   @DynamicPropertySource
   static void testDatabase(DynamicPropertyRegistry registry) {
+    registry.add("workshop.deadline-scheduling", () -> "false");
     registry.add("spring.datasource.url", () -> required("TEST_DB_URL"));
     registry.add("spring.datasource.username", () -> required("TEST_DB_USERNAME"));
     registry.add("spring.datasource.password", () -> required("TEST_DB_PASSWORD"));

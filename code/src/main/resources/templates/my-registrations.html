@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的报名 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/registrations.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('mine')}"></div>
+  <main class="sheet registrations-page">
+    <div class="page-head">
+      <div>
+        <h1>我的报名</h1>
+        <p class="muted">记录每一次申请，查看报名与候补结果。</p>
+      </div>
+      <a class="discover-link" href="/workshops">发现工作坊</a>
+    </div>
+    <section class="registrations-empty" th:if="${#lists.isEmpty(registrations)}">
+      <h2>还没有报名记录</h2>
+      <p class="muted">去发现感兴趣的工作坊，开启一场新的体验。</p>
+      <a class="discover-link" href="/workshops">发现工作坊</a>
+    </section>
+    <section th:unless="${#lists.isEmpty(registrations)}" aria-label="报名记录">
+      <div class="list-head">
+        <h2>申请记录 <span th:text="'共 ' + ${#lists.size(registrations)} + ' 条'">共 0 条</span></h2>
+      </div>
+      <div class="registration-list">
+        <article class="registration-row" th:each="item : ${registrations}">
+          <div class="registration-head">
+            <h3 th:text="${item.name}">活动名称</h3>
+            <span class="status" th:classappend="${item.status.name()}"
+                th:text="${item.status.label}">报名状态</span>
+          </div>
+          <dl class="registration-facts">
+            <div><dt>场次时间</dt><dd th:text="${item.timeLabel()}">场次时间</dd></div>
+            <div><dt>活动地点</dt><dd th:text="${item.location}">活动地点</dd></div>
+            <div><dt>申请时间</dt>
+              <dd th:text="${#temporals.format(item.registeredAt, 'yyyy-MM-dd HH:mm')}">申请时间</dd>
+            </div>
+          </dl>
+          <div class="registration-meta"
+              th:if="${item.status.name() == 'WAITLIST' and item.waitlistOrder != null}">
+            <span th:text="'候补序号 ' + ${item.waitlistOrder}">候补序号</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

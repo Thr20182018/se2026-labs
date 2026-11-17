@@ -15,7 +15,8 @@ public class ActivityQueryRepository {
       "CASE"
           + " WHEN s.publication_status = 'CANCELLED' THEN 'CANCELLED'"
           + " WHEN s.registration_deadline <= ? THEN 'CLOSED'"
-          + " WHEN s.capacity <= COALESCE(r.registered_count, 0) THEN 'WAITLIST'"
+          + " WHEN s.capacity <= COALESCE(r.registered_count, 0)"
+          + " OR COALESCE(r.waitlisted_count, 0) > 0 THEN 'WAITLIST'"
           + " ELSE 'OPEN' END";
 
   private static final String COLUMNS =
@@ -26,8 +27,8 @@ public class ActivityQueryRepository {
       " FROM sessions s"
           + " JOIN activities a ON a.id = s.activity_id"
           + " LEFT JOIN ("
-          + "SELECT session_id, COUNT(*) AS registered_count FROM registrations"
-          + " WHERE status IN ('REGISTERED', 'CHECKED_IN', 'ABSENT')"
+          + "SELECT session_id, SUM(status IN ('REGISTERED', 'CHECKED_IN', 'ABSENT'))"
+          + " AS registered_count, SUM(status = 'WAITLIST') AS waitlisted_count FROM registrations"
           + " GROUP BY session_id) r ON r.session_id = s.id";
 
   private final JdbcTemplate jdbc;

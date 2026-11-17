@@ -99,11 +99,17 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
     user(6, "guest", "访客", "PARTICIPANT");
     registration(6, 6, 1, "WAITLIST_EXPIRED");
     String open = search("", "", "", "open");
-    assertTrue(open.contains("容量场次"));
-    assertTrue(sessionMarkup(open, 1).contains("共 5 个，剩余 2"));
+    assertFalse(open.contains("容量场次"), "已有候补者时不能直接报名");
     assertFalse(open.contains("截止场次"));
     assertFalse(open.contains("取消场次"));
     assertFalse(open.contains("单独取消"));
+    String waitlist = search("", "", "", "waitlist");
+    assertTrue(waitlist.contains("容量场次"));
+    assertTrue(sessionMarkup(waitlist, 1).replaceAll("<[^>]+>", "").replaceAll("\\s+", " ")
+        .contains("共 5 个，剩余 2"));
+    assertFalse(waitlist.contains("截止场次"));
+    assertFalse(waitlist.contains("取消场次"));
+    assertFalse(waitlist.contains("单独取消"));
     clock.setBeijing(LocalDateTime.of(2026, 11, 10, 9, 59, 59));
     assertTrue(search("", "", "", "open").contains("截止场次"));
     clock.setBeijing(LocalDateTime.of(2026, 11, 10, 10, 0, 0));
@@ -167,7 +173,8 @@ class ActivityQueryHttpTest extends WorkshopTestBase {
         summaryText(first), "收起行只展示活动名称、时间、地点和报名状态");
     assertTrue(first.contains("简介：蓝晒手作"), "当前页每个场次都应提供自己的详情");
     assertTrue(second.contains("简介：声音采集"));
-    assertTrue(first.contains("共 8 个，剩余 8"), "容量信息应保留在详情中");
+    assertTrue(first.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").contains("共 8 个，剩余 8"),
+        "容量信息应保留在详情中");
     assertFalse(isOpen(first), "首次打开页面时场次应收起");
     assertFalse(isOpen(second), "其他场次也应默认收起");
   }
