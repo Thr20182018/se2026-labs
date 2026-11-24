@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>操作日志 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+  <link rel="stylesheet" th:href="@{/css/management-query.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('logs')}"></div>
+  <main class="sheet management">
+    <div class="page-head"><h1>操作日志</h1>
+      <span class="free" th:text="${scope.ownerId == null} ? '全部活动' : '我负责的活动'">查询范围</span>
+    </div>
+    <form class="query-filters management-card" th:action="@{${basePath + '/logs'}}" method="get">
+      <label>活动<select name="activityId" onchange="this.form.sessionId.value = ''; this.form.requestSubmit()">
+        <option value="">全部活动</option>
+        <option th:each="item : ${activities}" th:value="${item.id}" th:text="${item.label}"
+            th:selected="${scope.activityId == item.id}">活动</option>
+      </select></label>
+      <label>场次<select name="sessionId">
+        <option value="">全部场次</option>
+        <option th:each="item : ${sessions}" th:value="${item.id}" th:text="${item.label}"
+            th:selected="${scope.sessionId == item.id}">场次</option>
+      </select></label>
+      <label>开始时间<input type="datetime-local" name="from" step="1" th:value="${from}"></label>
+      <label>结束时间<input type="datetime-local" name="to" step="1" th:value="${to}"></label>
+      <label>操作类型<select name="action">
+        <option value="">全部类型</option>
+        <option th:each="item : ${actions}" th:value="${item.name()}" th:text="${item.label}"
+            th:selected="${action == item.name()}">操作类型</option>
+      </select></label>
+      <div class="query-actions"><button type="submit">查询</button>
+        <a th:href="@{${basePath + '/logs'}}">重置</a></div>
+    </form>
+    <div class="log-layout">
+      <section class="management-card">
+        <h2>操作记录 <small th:text="'共 ' + ${pageData.total} + ' 条'">记录数</small></h2>
+        <p class="empty" th:if="${pageData.total == 0}">暂无符合条件的操作记录。</p>
+        <div class="query-scroll" th:unless="${pageData.total == 0}">
+          <table class="query-table">
+            <thead><tr><th scope="col">操作时间</th><th scope="col">操作人</th>
+              <th scope="col">操作类型</th><th scope="col">活动与场次</th>
+              <th scope="col">结果</th><th scope="col">详情</th></tr></thead>
+            <tbody><tr th:each="item : ${pageData.rows}"
+                th:classappend="${pageData.selected != null and pageData.selected.id == item.id} ? 'is-selected' : ''">
+              <td th:text="${#temporals.format(item.operatedAt, 'yyyy-MM-dd HH:mm:ss')}">操作时间</td>
+              <td><span th:text="${item.actorLabel()}">姓名或系统</span>
+                <small class="muted" th:if="${item.actorAccount != null}" th:text="${item.actorAccount}">账号</small></td>
+              <td th:text="${item.actionLabel()}">操作类型</td>
+              <td><span th:text="${item.activityName != null ? item.activityName : (item.activityId == null ? '未指定活动' : '活动不存在')}">活动名称</span>
+                <small class="muted" th:if="${item.activityId != null}" th:text="'活动 #' + ${item.activityId}">活动编号</small>
+                <small th:if="${item.sessionId != null}" th:text="${'场次 #' + item.sessionId + (item.sessionStart == null ? '（信息不可用）' : ' · ' + #temporals.format(item.sessionStart, 'MM-dd HH:mm'))}">场次</small>
+                <small class="muted" th:if="${item.sessionId == null}">无场次</small></td>
+              <td><span class="status" th:classappend="${item.success()} ? 'SUCCESS' : 'FAILURE'"
+                  th:text="${item.success()} ? '成功' : '失败'">结果</span></td>
+              <td><a th:href="@{${basePath + '/logs'}(activityId=${scope.activityId},sessionId=${scope.sessionId},from=${from},to=${to},action=${action},page=${pageData.page},selected=${item.id})}">查看</a></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <nav class="pagination" aria-label="日志分页" th:if="${pageData.total > 0}">
+          <a th:if="${pageData.page > 1}" th:href="@{${basePath + '/logs'}(activityId=${scope.activityId},sessionId=${scope.sessionId},from=${from},to=${to},action=${action},page=${pageData.page - 1})}">上一页</a>
+          <span th:text="'第 ' + ${pageData.page} + ' / ' + ${pageData.pages} + ' 页'">页码</span>
+          <a th:if="${pageData.page < pageData.pages}" th:href="@{${basePath + '/logs'}(activityId=${scope.activityId},sessionId=${scope.sessionId},from=${from},to=${to},action=${action},page=${pageData.page + 1})}">下一页</a>
+        </nav>
+      </section>
+      <aside class="management-card log-detail" aria-label="日志详情">
+        <h2>日志详情</h2>
+        <p class="empty" th:if="${pageData.selected == null}">选择一条操作记录查看详情。</p>
+        <div th:if="${pageData.selected != null}" th:with="item=${pageData.selected}">
+          <dl class="review-facts">
+            <div><dt>日志编号</dt><dd th:text="${item.id}">编号</dd></div>
+            <div><dt>操作类型</dt><dd th:text="${item.actionLabel()}">操作类型</dd></div>
+            <div><dt>操作时间</dt><dd th:text="${#temporals.format(item.operatedAt, 'yyyy-MM-dd HH:mm:ss')}">时间</dd></div>
+            <div><dt>操作人</dt><dd><span th:text="${item.actorLabel()}">操作人</span>
+              <small th:if="${item.actorAccount != null}" th:text="${item.actorAccount}">账号</small></dd></div>
+            <div><dt>关联活动</dt><dd th:text="${item.activityId == null} ? '未指定' : ${item.activityId}">活动编号</dd></div>
+            <div><dt>关联场次</dt><dd th:text="${item.sessionId == null} ? '无场次' : ${item.sessionId}">场次编号</dd></div>
+            <div th:if="${item.registrationId != null}"><dt>报名编号</dt><dd th:text="${item.registrationId}">报名编号</dd></div>
+            <div><dt>操作结果</dt><dd th:text="${item.success()} ? '成功' : '失败，操作未生效'">结果</dd></div>
+          </dl>
+          <div class="error" th:unless="${item.success()}"><strong>失败原因</strong>
+            <p th:text="${item.failureReason == null} ? '未记录失败原因' : ${item.failureReason}">失败原因</p></div>
+          <h3 th:text="${item.success()} ? '操作前内容' : '操作前记录'">操作前内容</h3>
+          <pre th:text="${item.beforeValue}">操作前内容</pre>
+          <h3 th:text="${item.success()} ? '操作后内容' : '请求内容（未生效）'">操作后内容</h3>
+          <pre th:text="${item.afterValue}">操作后内容</pre>
+        </div>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>
