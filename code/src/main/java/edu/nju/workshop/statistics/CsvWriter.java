@@ -2,7 +2,7 @@ package edu.nju.workshop.statistics;
 
 import java.nio.charset.StandardCharsets;
 
-/** CSV 使用 BOM、CRLF 和双引号转义，文本字段禁止作为电子表格公式执行。 */
+/** CSV 使用 BOM、CRLF 和双引号转义，文本字段禁止作为电子表格公式执行. */
 final class CsvWriter {
   private final StringBuilder content = new StringBuilder("\uFEFF");
 

@@ -1,5 +1,6 @@
 package edu.nju.workshop.activity;
 
+/** 工作坊列表根据取消状态、报名截止时间和名额情况展示的报名状态. */
 public enum Availability {
   OPEN("可报名"),
   WAITLIST("已满可候补"),
@@ -12,11 +13,12 @@ public enum Availability {
     this.label = label;
   }
 
+  /** 返回报名情况在页面中的中文标签. */
   public String getLabel() {
     return label;
   }
 
-  /** 查询参数。空值表示不筛选；取消场次不作为筛选项。 */
+  /** 解析报名情况筛选参数，空值表示不筛选，取消场次不作为筛选项. */
   public static Availability fromParam(String raw) {
     if (raw == null || raw.isBlank()) {
       return null;

@@ -18,7 +18,7 @@ CATEGORIES = {
     "sql": ("数据库结构、迁移和演示数据 SQL", ["src/main/resources/db/**/*.sql"]),
     "configuration": (
         "构建、运行和风格配置",
-        ["pom.xml", "src/main/resources/application.yml", "config/checkstyle/checkstyle.xml"],
+        ["pom.xml", "src/main/resources/application.yml"],
     ),
     "python_tools": ("Python 验收与统计工具", ["tools/*.py"]),
     "generated_wrapper": (

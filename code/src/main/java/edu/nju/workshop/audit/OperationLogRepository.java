@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 保存业务操作的对象、结果及变更前后数据. */
 @Repository
 public class OperationLogRepository {
 
   private final JdbcTemplate jdbc;
 
+  /** 使用数据库模板写入操作日志. */
   public OperationLogRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }

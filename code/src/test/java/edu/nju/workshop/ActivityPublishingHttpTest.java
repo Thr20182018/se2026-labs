@@ -90,7 +90,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   @Test
   void rejectionAllowsEditingAndResubmissionWithBeforeAndAfterLogs() throws Exception {
     long id = createActivity("旧版植物拓印");
-    long sessionId = addSession(id, "2026-11-15");
+    final long sessionId = addSession(id, "2026-11-15");
     submit(id);
     review(id, "reject");
     assertState(id, "REJECTED", 1);
@@ -125,7 +125,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   @Test
   void tamperedActivityAndSessionIdsCannotChangeAnotherOrganizersData() throws Exception {
     long id = createActivity("本人负责的活动");
-    long ownSession = addSession(id, "2026-11-15");
+    final long ownSession = addSession(id, "2026-11-15");
     activity(100, 3, "别人的私有活动", "DRAFT", null, null);
     session(100, 100, "2026-11-18 14:00:00", "2026-11-18 16:00:00",
         "2026-11-17 18:00:00", 8, "DRAFT");
@@ -156,7 +156,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
 
   @Test
   void rolesAndCsrfAreEnforced() throws Exception {
-    MvcResult wrongRole = mvc.perform(write(participant, "/organizer/activities")
+    final MvcResult wrongRole = mvc.perform(write(participant, "/organizer/activities")
             .param("name", "越权创建")
             .param("description", "越权创建"))
         .andExpect(status().isForbidden()).andReturn();
@@ -237,7 +237,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   @Test
   void pendingAndPublishedActivitiesRejectStaleWriteRequests() throws Exception {
     long id = createActivity("锁定审核内容");
-    long sessionId = addSession(id, "2026-11-15");
+    final long sessionId = addSession(id, "2026-11-15");
     submit(id);
     mvc.perform(write(organizer, activityPath(id)).param("name", "审核中偷偷修改")
             .param("description", "应保留原内容"))
@@ -266,7 +266,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
   }
 
   @Test
-  void oldReviewPageCannotDecideAResubmittedApplication() throws Exception {
+  void oldReviewPageCannotDecideResubmittedApplications() throws Exception {
     long id = createActivity("第一轮审核内容");
     addSession(id, "2026-11-15");
     submit(id);
@@ -274,7 +274,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
     var versionField = Pattern.compile("name=\"reviewVersion\" value=\"(\\d+)\"")
         .matcher(body(secondAdmin, "/admin/reviews/" + id));
     assertTrue(versionField.find());
-    String oldVersion = versionField.group(1);
+    final String oldVersion = versionField.group(1);
     review(id, "reject");
     mvc.perform(write(organizer, activityPath(id)).param("name", "第二轮审核内容")
             .param("description", "修改后的内容需要重新审核"))
@@ -330,7 +330,7 @@ class ActivityPublishingHttpTest extends WorkshopTestBase {
     try {
       TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
       long id = createActivity("跨时区读取校验");
-      long sessionId = addSession(id, "2026-11-15");
+      final long sessionId = addSession(id, "2026-11-15");
       var stored = management.ownedActivity(2, id).sessions().getFirst();
       assertEquals(LocalDateTime.of(2026, 11, 15, 14, 0), stored.startTime());
       assertEquals(LocalDateTime.of(2026, 11, 15, 16, 0), stored.endTime());

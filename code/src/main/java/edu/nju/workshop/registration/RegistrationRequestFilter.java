@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.NumberUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/** 在业务处理前登记报名相关请求的接收时间，并在结束时释放凭据. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RegistrationRequestFilter extends OncePerRequestFilter {
@@ -24,6 +25,7 @@ public class RegistrationRequestFilter extends OncePerRequestFilter {
           + "|/organizer/activities/[^/]+/sessions/([^/]+)/capacity");
   private final RegistrationAdmission admission;
 
+  /** 使用在途请求登记组件跟踪场次相关写请求. */
   public RegistrationRequestFilter(RegistrationAdmission admission) {
     this.admission = admission;
   }

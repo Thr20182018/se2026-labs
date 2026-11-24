@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+/** 读写活动、场次和审核申请，并按活动后场次的顺序获取管理锁. */
 @Repository
 public class ActivityManagementRepository {
 
@@ -26,6 +27,7 @@ public class ActivityManagementRepository {
 
   private final JdbcTemplate jdbc;
 
+  /** 使用业务数据库保存活动管理数据并查询审核状态. */
   public ActivityManagementRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+/** 校验日志筛选条件并在一致快照中读取分页和详情. */
 @Service
 public class OperationLogQueryService {
 
@@ -17,12 +18,13 @@ public class OperationLogQueryService {
   private final OperationLogQueryRepository repository;
   private final ObjectMapper json;
 
+  /** 配置日志查询及变更内容的 JSON 展示依赖. */
   public OperationLogQueryService(OperationLogQueryRepository repository, ObjectMapper json) {
     this.repository = repository;
     this.json = json;
   }
 
-  /** 计数、分页和选中详情共享同一只读快照及权限条件。 */
+  /** 计数、分页和选中详情共享同一只读快照及权限条件. */
   @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
   public Page search(ManagementScope scope, LocalDateTime from, LocalDateTime to,
       String action, int requestedPage, Long selected) {
@@ -64,6 +66,7 @@ public class OperationLogQueryService {
     }
   }
 
+  /** 日志查询的分页信息及当前选中的日志详情. */
   public record Page(List<OperationLogEntry> rows, long total, int page, int pages,
       OperationLogEntry selected) {
   }

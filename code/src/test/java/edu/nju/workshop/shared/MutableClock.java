@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+/** 在测试中设置业务时间，覆盖截止、场次结束及并发等待边界. */
 @Component
 @Profile("test")
 public class MutableClock implements AppClock {

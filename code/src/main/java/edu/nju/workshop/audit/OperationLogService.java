@@ -9,6 +9,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** 保存成功和失败日志，并为失败记录提供独立事务. */
 @Service
 public class OperationLogService {
 
@@ -17,6 +18,7 @@ public class OperationLogService {
   private final AppClock clock;
   private final TransactionTemplate failureTransaction;
 
+  /** 配置日志序列化、业务时钟及失败日志的独立事务. */
   public OperationLogService(OperationLogRepository repository, ObjectMapper json, AppClock clock,
       PlatformTransactionManager transactions) {
     this.repository = repository;
@@ -26,22 +28,24 @@ public class OperationLogService {
     failureTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
   }
 
-  /** 成功日志使用调用方的业务事务，自动发布用空 actorId 表示系统。 */
+  /** 成功日志使用调用方的业务事务，自动发布用空 actorId 表示系统. */
   public void success(Long actorId, Long activityId, Long sessionId, String action,
       Object before, Object after) {
     success(actorId, activityId, sessionId, null, action, before, after);
   }
 
+  /** 在调用方业务事务中保存关联报名记录的成功日志. */
   public void success(Long actorId, Long activityId, Long sessionId, Long registrationId,
       String action, Object before, Object after) {
     insert(actorId, activityId, sessionId, registrationId, action, "SUCCESS", null, before, after);
   }
 
-  /** 由业务入口在回滚后调用，失败原因单独提交。 */
+  /** 由业务入口在回滚后调用，失败原因单独提交. */
   public void failure(long actorId, Long activityId, Long sessionId, String action, String reason) {
     failure(actorId, activityId, sessionId, null, action, reason);
   }
 
+  /** 在独立事务中保存失败原因，空操作者编号表示系统操作. */
   public void failure(Long actorId, Long activityId, Long sessionId, Long registrationId,
       String action, String reason) {
     failureTransaction.executeWithoutResult(status -> insert(actorId, activityId, sessionId,

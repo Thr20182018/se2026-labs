@@ -20,9 +20,9 @@ class AccessDeniedAuditHttpTest extends WorkshopTestBase {
     user(1, "lin_zy", "林知远", "PARTICIPANT");
     user(2, "su_qing", "苏清和", "ORGANIZER");
     user(3, "he_qm", "何启明", "ADMIN");
-    var participant = login("lin_zy", "PARTICIPANT");
-    var organizer = login("su_qing", "ORGANIZER");
-    var admin = login("he_qm", "ADMIN");
+    final var participant = login("lin_zy", "PARTICIPANT");
+    final var organizer = login("su_qing", "ORGANIZER");
+    final var admin = login("he_qm", "ADMIN");
     activity(12, 2, "安全日志草稿", "DRAFT", null, null);
     activity(13, 2, "安全日志待审核", "PENDING", null, null);
     session(34, 12, "2026-11-20 14:00:00", "2026-11-20 16:00:00",
@@ -50,7 +50,7 @@ class AccessDeniedAuditHttpTest extends WorkshopTestBase {
         }
         boolean review = path.startsWith("/admin/");
         for (boolean missingCsrf : new boolean[] {false, true}) {
-          long actorId = missingCsrf ? (review ? 3L : 2L) : 1L;
+          final long actorId = missingCsrf ? (review ? 3L : 2L) : 1L;
           var actor = missingCsrf ? (review ? admin : organizer) : participant;
           var request = post(URI.create(path)).session(actor).param("decision", route[4])
               .param("name", "不应保存的内容").param("description", "不应保存的简介")

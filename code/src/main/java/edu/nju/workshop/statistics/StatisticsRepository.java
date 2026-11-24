@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 按授权范围读取报名名单、分页数量和统一口径的场次统计. */
 @Repository
 public class StatisticsRepository {
   private static final String REGISTRATION_FROM = """
@@ -36,6 +37,7 @@ public class StatisticsRepository {
 
   private final JdbcTemplate jdbc;
 
+  /** 使用数据库模板查询报名及场次统计数据. */
   public StatisticsRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }
@@ -79,6 +81,11 @@ public class StatisticsRepository {
     return jdbc.queryForObject(sql, (rs, row) -> summary(rs), args.toArray());
   }
 
+  private StatisticsSummary summary(ResultSet rs) throws SQLException {
+    return new StatisticsSummary(rs.getLong("registered"), rs.getLong("attended"),
+        rs.getLong("absent"), rs.getLong("remaining"));
+  }
+
   List<SessionStatistics> sessions(ManagementScope scope) {
     List<Object> args = new ArrayList<>();
     return jdbc.query("SELECT counts.*, capacity - registered AS remaining FROM ("
@@ -88,10 +95,5 @@ public class StatisticsRepository {
                 rs.getLong("session_id"), rs.getObject("start_time", LocalDateTime.class),
                 rs.getObject("end_time", LocalDateTime.class), rs.getString("organizer_name"),
                 rs.getLong("capacity"), summary(rs)), args.toArray());
-  }
-
-  private StatisticsSummary summary(ResultSet rs) throws SQLException {
-    return new StatisticsSummary(rs.getLong("registered"), rs.getLong("attended"),
-        rs.getLong("absent"), rs.getLong("remaining"));
   }
 }

@@ -75,7 +75,7 @@ class CancellationPromotionHttpTest extends LifecycleTestBase {
   }
 
   @Test
-  void cancelledHistoryKeepsItsIdentityAfterASeatIsReleasedAndReapplied() throws Exception {
+  void cancelledHistoryKeepsItsIdentityAfterSeatReleaseAndReapplication() throws Exception {
     registration(10, 1, 1, "REGISTERED");
     String initial = body(actor(1), "/me/registrations");
     assertTrue(initial.contains(cancelPath(1, 10)));

@@ -38,7 +38,7 @@ class ActivityLifecycleHttpTest extends LifecycleTestBase {
     jdbc.update("UPDATE sessions SET publication_status = 'PENDING' WHERE id = 3");
     jdbc.update("UPDATE activities SET pending_name = '待审蓝晒', pending_description = '待审简介',"
         + " revision_pending = 1 WHERE id = 1");
-    var endedBefore = jdbc.queryForList("SELECT * FROM registrations WHERE session_id = 2"
+    final var endedBefore = jdbc.queryForList("SELECT * FROM registrations WHERE session_id = 2"
         + " ORDER BY id");
 
     submit(write(2, ACTIVITY + "/cancel"), 200);
@@ -246,7 +246,7 @@ class ActivityLifecycleHttpTest extends LifecycleTestBase {
   }
 
   @Test
-  void cancellingAllPendingSessionsAllowsRejectionAndANewSessionToBeResubmitted()
+  void cancellingAllPendingSessionsAllowsRejectionAndNewSessionResubmission()
       throws Exception {
     jdbc.update("UPDATE activities SET publication_status = 'PENDING', review_version = 1"
         + " WHERE id = 1");

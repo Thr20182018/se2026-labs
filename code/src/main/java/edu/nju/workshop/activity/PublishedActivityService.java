@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
+/** 处理已发布活动的内容修改、新增场次审核及容量调整. */
 @Service
 public class PublishedActivityService {
 
@@ -14,6 +15,7 @@ public class PublishedActivityService {
   private final OperationLogService logs;
   private final RegistrationService registrations;
 
+  /** 复用活动管理事务、审核数据与报名服务完成发布后的维护. */
   public PublishedActivityService(ActivityManagementService management,
       ActivityManagementRepository repository, OperationLogService logs,
       RegistrationService registrations) {
@@ -23,16 +25,19 @@ public class PublishedActivityService {
     this.registrations = registrations;
   }
 
+  /** 按请求接收时间调整场次容量，并复用报名服务处理候补递补. */
   public String resizeCapacity(long actorId, long activityId, long sessionId, String capacity,
       Instant receivedAt) {
     return registrations.resize(actorId, activityId, sessionId, capacity, receivedAt);
   }
 
+  /** 校验管理员身份后读取三类待审核申请. */
   public List<ReviewRequest> pendingReviews(long adminId) {
     management.requireRole(adminId, "ADMIN");
     return repository.pendingReviews();
   }
 
+  /** 提交已发布活动的新名称与简介，审核期间保留当前公开内容. */
   public void submitRevision(long actorId, long id, ActivityDraft draft) {
     management.execute(actorId, id, null, "SUBMIT_REVISION", () -> {
       ManagedActivity activity = management.owned(actorId, id, true);
@@ -48,6 +53,7 @@ public class PublishedActivityService {
     });
   }
 
+  /** 在活动锁内核对审核版本，通过时替换公开内容，驳回时保留原内容. */
   public void reviewRevision(long adminId, long id, String decision, long reviewVersion) {
     String action = "approve".equals(decision) ? "APPROVE_REVISION"
         : "reject".equals(decision) ? "REJECT_REVISION" : "REVIEW_REVISION";
@@ -74,6 +80,7 @@ public class PublishedActivityService {
     });
   }
 
+  /** 将已发布活动中的新增场次单独提交审核，并记录状态变化. */
   public void submitSession(long actorId, long id, long sessionId) {
     management.execute(actorId, id, sessionId, "SUBMIT_SESSION_REVIEW", () -> {
       ManagedActivity activity = management.owned(actorId, id, true);
@@ -88,6 +95,7 @@ public class PublishedActivityService {
     });
   }
 
+  /** 核对场次审核版本并保存审核结果，通过后自动发布该场次. */
   public void reviewSession(long adminId, long id, long sessionId, String decision,
       long reviewVersion) {
     String action = "approve".equals(decision) ? "APPROVE_SESSION_REVIEW"

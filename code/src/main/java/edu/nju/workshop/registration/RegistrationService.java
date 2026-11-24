@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** 在场次锁保护下处理报名、候补、取消递补和容量调整. */
 @Service
 public class RegistrationService {
   private final RegistrationRepository repository;
@@ -25,6 +26,7 @@ public class RegistrationService {
   private final AppClock clock;
   private final TransactionTemplate transaction;
 
+  /** 配置报名依赖，并使锁后查询读取前一事务已提交的状态. */
   public RegistrationService(RegistrationRepository repository, RegistrationAdmission admission,
       OperationLogService logs, AppClock clock, PlatformTransactionManager transactions) {
     this.repository = repository;
@@ -36,6 +38,7 @@ public class RegistrationService {
     transaction.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
   }
 
+  /** 按请求接收时间判断截止资格，并在场次事务内创建报名或候补. */
   public RegistrationResult apply(long actorId, long sessionId, String action, Instant receivedAt) {
     Long[] activityId = {null};
     String logAction = "waitlist".equals(action) ? "JOIN_WAITLIST" : "REGISTER";
@@ -91,6 +94,7 @@ public class RegistrationService {
     }
   }
 
+  /** 合并参与者已有申请与场次状态，生成列表中的操作按钮数据. */
   public Map<Long, RegistrationResult> offers(long actorId, List<SessionRow> rows) {
     var existing = repository.active(actorId, rows.stream().map(SessionRow::id).toList());
     Map<Long, RegistrationResult> offers = new HashMap<>();
@@ -101,11 +105,13 @@ public class RegistrationService {
     return offers;
   }
 
+  /** 校验参与者身份后读取其全部报名记录. */
   public List<RegistrationRow> mine(long actorId) {
     requireParticipant(actorId);
     return repository.mine(actorId);
   }
 
+  /** 取消本人的报名或候补，并在同一事务内递补释放的名额. */
   public RegistrationResult cancel(long actorId, long sessionId, long registrationId,
       Instant receivedAt) {
     Long[] activityId = {null};
@@ -143,6 +149,7 @@ public class RegistrationService {
     }
   }
 
+  /** 校验组织者归属及截止资格后调整容量，并递补新增名额. */
   public String resize(long actorId, long activityId, long sessionId, String rawCapacity,
       Instant receivedAt) {
     try {
@@ -181,7 +188,7 @@ public class RegistrationService {
     }
   }
 
-  /** 活动取消事务已锁定场次，关联记录与场次状态一起提交。 */
+  /** 活动取消事务已锁定场次，关联记录与场次状态一起提交. */
   @Transactional(propagation = Propagation.MANDATORY)
   public void cancelForSession(long actorId, long activityId, long sessionId) {
     for (Registration registration : repository.cancellable(sessionId)) {
@@ -233,6 +240,7 @@ public class RegistrationService {
     return ex instanceof RegistrationException ? ex.getMessage() : "操作未完成，事务已回滚";
   }
 
+  /** 等待截止前的在途请求完成后，将剩余候补标为候补未成功. */
   public void closeDueWaitlists() {
     for (long sessionId : repository.dueSessions(now())) {
       transaction.executeWithoutResult(tx -> {

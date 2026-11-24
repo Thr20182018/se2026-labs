@@ -118,7 +118,7 @@ class RegistrationDeadlineTest extends WorkshopTestBase {
       throws Exception {
     registration(10, 3, 1, "WAITLIST");
     MockHttpSession participant = login("lin_zy", "PARTICIPANT");
-    MockHttpSession existing = login("chen_an", "PARTICIPANT");
+    final MockHttpSession existing = login("chen_an", "PARTICIPANT");
     clock.setBeijing(deadline.plusSeconds(seconds));
     for (String action : new String[] {"register", "waitlist"}) {
       mvc.perform(post("/me/sessions/1/registrations").session(participant).with(csrf())
@@ -205,7 +205,7 @@ class RegistrationDeadlineTest extends WorkshopTestBase {
           var row = statement.executeQuery()) {
         assertTrue(row.next());
       }
-      var result = executor.submit(() -> mvc.perform(post(path).session(actor).with(csrf())
+      final var result = executor.submit(() -> mvc.perform(post(path).session(actor).with(csrf())
           .param("capacity", "2")).andExpect(status().isOk()));
       long timeout = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
       while (!admission.hasPendingBefore(1, Instant.MAX) && System.nanoTime() < timeout) {
@@ -227,7 +227,7 @@ class RegistrationDeadlineTest extends WorkshopTestBase {
   void exactAndLaterDeadlineRejectCancellationAndCapacityChanges(int seconds) throws Exception {
     prepareQueue();
     var participant = login("lin_zy", "PARTICIPANT");
-    var organizer = login("su_qing", "ORGANIZER");
+    final var organizer = login("su_qing", "ORGANIZER");
     var waiting = login("chen_an", "PARTICIPANT");
     clock.setBeijing(deadline.plusSeconds(seconds));
     mvc.perform(post("/me/sessions/1/registrations/10/cancel").session(participant).with(csrf()))
