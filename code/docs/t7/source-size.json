@@ -42,7 +42,7 @@
         {
           "path": "src/main/java/edu/nju/workshop/activity/ActivityLifecycleService.java",
           "nonblank_lines": 106,
-          "normalized_utf8_sha256": "2688ae8d8d3b08c33959e1a131d5e3b5aecf5a6076875006793bea6fb26ae78c"
+          "normalized_utf8_sha256": "5211686de1dc6709c987c23c72341798f492ae4a92463927f460fd398eb2e737"
         },
         {
           "path": "src/main/java/edu/nju/workshop/activity/ActivityManagementController.java",

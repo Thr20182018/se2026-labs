@@ -12,7 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** 在活动及场次锁内联动取消目标、报名记录和操作日志. */
+/** 在活动及场次锁内取消活动、场次和关联报名，并记录操作日志. */
 @Service
 public class ActivityLifecycleService {
   private final ActivityManagementService management;
