@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-24",
+  "command": ".\\mvnw.cmd -B verify",
+  "totals": {
+    "tests": 154,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "edu.nju.workshop.AccessDeniedAuditHttpTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.ActivityLifecycleHttpTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.ActivityPublishingHttpTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.ActivityQueryHttpTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.AttendanceLifecycleHttpTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.AuthHttpTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.CancellationPromotionHttpTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.ManagementQueryHttpTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.PublishedActivityHttpTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.RegistrationDeadlineTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.RegistrationHttpTest",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "edu.nju.workshop.SchemaAndDemoTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "reliability": {
+    "cancellationPromotesOnlyTheEarliestWaitlistRecordInEachIndependentRound": {
+      "rounds": 10,
+      "passed": 10
+    },
+    "twentyParticipantsCompeteForOneSeatAndALoserCanThenWaitlist": {
+      "rounds": 10,
+      "passed": 10
+    },
+    "registrationReturnsCurrentStateAndRepeatedRequestsReuseItsRecord": {
+      "rounds": 10,
+      "passed": 10
+    }
+  },
+  "checkstyle_violations": 0,
+  "build": "SUCCESS",
+  "build_seconds": 247,
+  "source": "Maven console and Surefire XML; environment properties omitted"
+}

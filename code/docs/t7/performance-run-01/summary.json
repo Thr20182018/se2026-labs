@@ -1,0 +1,122 @@
+{
+  "requirement": "REQ-018",
+  "completed_at": "2026-11-24T05:58:39.377717+00:00",
+  "passed": true,
+  "setup_ok": true,
+  "total_requests": 100,
+  "correct": 100,
+  "qualified_within_2s": 100,
+  "required_qualified": 95,
+  "incorrect_or_failed": 0,
+  "over_2s": 0,
+  "elapsed_ms": {
+    "min": 141.601,
+    "median": 709.304,
+    "p95_nearest_rank": 1438.156,
+    "max": 1546.028
+  },
+  "login_results": [
+    {
+      "user": "perf_01",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_02",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_03",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_04",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_05",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_06",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_07",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_08",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_09",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_10",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_11",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_12",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_13",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_14",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_15",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_16",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_17",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_18",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_19",
+      "success": true,
+      "error": ""
+    },
+    {
+      "user": "perf_20",
+      "success": true,
+      "error": ""
+    }
+  ],
+  "warmup_correct": 20,
+  "calculation": "All 100 outcomes retained; only complete, exact oracle matches within 2 seconds qualify"
+}

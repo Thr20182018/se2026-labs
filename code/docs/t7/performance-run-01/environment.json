@@ -1,0 +1,37 @@
+{
+  "started_at": "2026-11-24T05:58:17.953637+00:00",
+  "base_url": "http://127.0.0.1:18084",
+  "database": "workshop_acceptance",
+  "fixture": {
+    "format_version": 1,
+    "database": "workshop_acceptance",
+    "anchor": "2026-11-24",
+    "counts": {
+      "users": 21,
+      "activities": 1000,
+      "sessions": 10000,
+      "registrations": 16000
+    },
+    "dataset_sha256": "7bd0039df6aa6b69fd270e469fc8835dab6db7c1a0802c44ec7193869390a17e",
+    "sql_sha256": "e3a9adbea845094b0c23e147a46bada6e39883cf61909211377c32f21374caf2",
+    "valid_before": "2026-12-08"
+  },
+  "os": "Windows-11-10.0.26200-SP0",
+  "cpu": "13th Gen Intel(R) Core(TM) i7-13650HX",
+  "logical_cpus": 20,
+  "ram_bytes": 25551560704,
+  "python": "3.12.4",
+  "java_version": "OpenJDK Temurin 21.0.12.1+1-LTS",
+  "mysql_version": "8.4.11",
+  "browser_version": "Ego Lite 0.6.3.17 / Chromium 156.0.0.0",
+  "network": "loopback HTTP; proxies disabled",
+  "client": "Python urllib; full HTML body; no browser rendering",
+  "timeout_seconds": 10.0,
+  "users": 20,
+  "rounds": 5,
+  "timed_requests": 100,
+  "warmup_requests": 20,
+  "timing": "Before HTTP request through complete body read; oracle excluded",
+  "synchronization": "20 independent cookie jars; barrier before each of 5 rounds",
+  "app_revision": "edcc02b6254ace68b85447b189f249bf3e8fd750 (T7 production code unchanged)"
+}

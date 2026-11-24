@@ -1,0 +1,759 @@
+{
+  "schema_version": 1,
+  "root": "code/",
+  "basis": "Current working-tree files matching the listed patterns, including uncommitted edits.",
+  "metric": "Nonblank physical lines after UTF-8 decoding; comments and punctuation-only lines count.",
+  "hash_metric": "SHA-256 after removing an optional UTF-8 BOM and normalizing line endings to LF.",
+  "excluded": [
+    "docs/** (Markdown, screenshots, performance CSV/JSON and this output)",
+    "target/**, .local/**, logs/**, local credentials and dependency caches",
+    "src/main/resources/static/images/** (existing image assets, including SVG)",
+    "README.md, tools/README.md and all other files outside the explicit patterns"
+  ],
+  "categories": {
+    "java_production": {
+      "label": "Java 生产代码",
+      "patterns": [
+        "src/main/java/**/*.java"
+      ],
+      "files": 71,
+      "nonblank_lines": 3416,
+      "entries": [
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityDraft.java",
+          "nonblank_lines": 3,
+          "normalized_utf8_sha256": "c2398298abc8abe008a25a024570ab9b612024a1e6f5669a0737496f8881e781"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityException.java",
+          "nonblank_lines": 11,
+          "normalized_utf8_sha256": "e372e7cd8022fafdd548face39144f30d0bd16c8c747b8eeaa05c6594a360c4d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityLifecycleController.java",
+          "nonblank_lines": 55,
+          "normalized_utf8_sha256": "afbcc079122f6ddf91fa7b94f62422c6d9f6485eb1dec77d5a81567a3b7fe741"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityLifecycleRepository.java",
+          "nonblank_lines": 22,
+          "normalized_utf8_sha256": "5d354d75f9e0429204a5bc85e746ea17df9e08adf50abbc0196201e4673ce103"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityLifecycleService.java",
+          "nonblank_lines": 100,
+          "normalized_utf8_sha256": "651f813e09c927ed7a7cf0fafacdd441e51a312db3c921216b317b6c079d3490"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityManagementController.java",
+          "nonblank_lines": 253,
+          "normalized_utf8_sha256": "dfc1a70626ead5f71e7144491b6b141765aada26fa0c114a555e62c3d4771c03"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityManagementRepository.java",
+          "nonblank_lines": 192,
+          "normalized_utf8_sha256": "3728e7033178a7e1287b982792c861a165f8182e9a1b5b16e84b1447b54682e0"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityManagementService.java",
+          "nonblank_lines": 234,
+          "normalized_utf8_sha256": "452d6a82ab36c484cc9b1a23abbb31905c70d9199710329ecee57b51cabf3cc0"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityQuery.java",
+          "nonblank_lines": 51,
+          "normalized_utf8_sha256": "8d573690f53e0128c62583bac7f6782052fcd7a84dc4be10c10f6163e664e033"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityQueryController.java",
+          "nonblank_lines": 53,
+          "normalized_utf8_sha256": "49afff315005f881ea1106fc557ac7fa96848f28da6581c9d33ad9d9f2df2d82"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityQueryRepository.java",
+          "nonblank_lines": 109,
+          "normalized_utf8_sha256": "fdd6d282446a98158dd801739b9e6430d5436144c7a2cdb6582a2ce40827bfdf"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivityQueryService.java",
+          "nonblank_lines": 28,
+          "normalized_utf8_sha256": "63c45ad5bf4e29e5e8465ce741570f3149b7fd53e4987e919d224410ef4fd402"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ActivitySummary.java",
+          "nonblank_lines": 9,
+          "normalized_utf8_sha256": "37353d00668f629569af4d548079ec1f4c3cfe742745c5e5a02823ac4b5c3204"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/Availability.java",
+          "nonblank_lines": 26,
+          "normalized_utf8_sha256": "90a8fcd77bc48bea319866f1ec8c0909879cb6169fc98dcc3fc981efd411ccdb"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ManagedActivity.java",
+          "nonblank_lines": 18,
+          "normalized_utf8_sha256": "8e9ef31770a6d1ddaeec6101cb896ce95ce34570af79294abc11a98e1fa840a1"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ManagedSession.java",
+          "nonblank_lines": 9,
+          "normalized_utf8_sha256": "5d4049bf7d454dc84cf8da7631fa2e97fec35161709f6e28a8a0eec7371020ea"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/PublicationStatus.java",
+          "nonblank_lines": 12,
+          "normalized_utf8_sha256": "298bb696ad07f327daf45df1e81b8579aa226a24f94f7f6b93b80c11d505b00d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/PublishedActivityService.java",
+          "nonblank_lines": 120,
+          "normalized_utf8_sha256": "69318fecde9f7264a64b8d53e2111c7139f5d7e1cc9bb18429a8614f85f2b651"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/QueryPage.java",
+          "nonblank_lines": 10,
+          "normalized_utf8_sha256": "82c2e4448baa2b729d609f9b1c2d1c3b794bb9090de7502e21017d387944e546"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ReviewKind.java",
+          "nonblank_lines": 11,
+          "normalized_utf8_sha256": "60793af7f0108c759b245b51e8a29030502d92a5c7f5a658aacd4bdc2ac5cc93"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/ReviewRequest.java",
+          "nonblank_lines": 12,
+          "normalized_utf8_sha256": "e086fafcdf86f58afa344f6ada9454e17838817068adb4f6fe3a16cdbc97f61f"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/SessionDraft.java",
+          "nonblank_lines": 4,
+          "normalized_utf8_sha256": "d30c191db6f677527b19dd12394368f50bed4130523744c63a3f82aeb7e6de21"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/activity/SessionRow.java",
+          "nonblank_lines": 59,
+          "normalized_utf8_sha256": "039bab709db95da66f71a5c9018b513a0bdde4c0ffec0c49cb2bbeee123f3a83"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/attendance/AttendanceController.java",
+          "nonblank_lines": 44,
+          "normalized_utf8_sha256": "d2d2d36fe9e3d62d08aeafe863773de4ae1f562863c78248138cc100ae41ffa6"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/attendance/AttendanceDeadlineJob.java",
+          "nonblank_lines": 16,
+          "normalized_utf8_sha256": "62e14d72e1c3621c4cb2496a9fb7312b1616f89c076c401f15e6f76468a5e421"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/attendance/AttendanceRepository.java",
+          "nonblank_lines": 66,
+          "normalized_utf8_sha256": "f3f69d5b67ea7d328e39e77ed49ed1561fceec230c2e7651a5dca144736f5143"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/attendance/AttendanceRow.java",
+          "nonblank_lines": 6,
+          "normalized_utf8_sha256": "73b9512182bc09046b133fc820f07d7595f6ff40f0cdcabd60c156dc4981c28d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/attendance/AttendanceService.java",
+          "nonblank_lines": 122,
+          "normalized_utf8_sha256": "844e238d555ebcdf19689b6b40044252d0c856748066734476600d72aa10bf1e"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogAction.java",
+          "nonblank_lines": 47,
+          "normalized_utf8_sha256": "75351325ee02b8004310b197f9550f00dd7c76d75f8c95bde4ade594b9a0c608"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogEntry.java",
+          "nonblank_lines": 22,
+          "normalized_utf8_sha256": "61f5217f2b28758d122a27cfbd352bca6d8111aa17631659f08b0df47cdb63dd"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogQueryController.java",
+          "nonblank_lines": 52,
+          "normalized_utf8_sha256": "ece0b703851479c2d72b01a412b639467cc5354723e030c6a27deab0bd3db786"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogQueryRepository.java",
+          "nonblank_lines": 78,
+          "normalized_utf8_sha256": "8ac660a0f96458491f358760ad3c9354550a787d063135004dd138fd2a696182"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogQueryService.java",
+          "nonblank_lines": 63,
+          "normalized_utf8_sha256": "e595cc2cd920dbc2ebdaa67a7cd0beccc3149b9aefd9a313053aa0ffb4eb3062"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogRepository.java",
+          "nonblank_lines": 22,
+          "normalized_utf8_sha256": "008fb2199e596fbdabbe7fb21123ef561c392f9db4199a4ca060935f57c3cbf7"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/audit/OperationLogService.java",
+          "nonblank_lines": 57,
+          "normalized_utf8_sha256": "96fc5121c8c600aaf878300e53ffdb642e1ea4f7b701d060cbd788d121f2b48c"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/config/SecurityConfig.java",
+          "nonblank_lines": 38,
+          "normalized_utf8_sha256": "8598cfef1a502eebb49cc04b9e659d47cd07a53ceb00ce92fbca2a6f26ade758"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/AccessDeniedController.java",
+          "nonblank_lines": 13,
+          "normalized_utf8_sha256": "0d4bd7bc0b887684b9e4c873ba085efa7459cd1e705d315cb0b031704964b328"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/AccountUser.java",
+          "nonblank_lines": 44,
+          "normalized_utf8_sha256": "508671843f5dab1da6d79f4e037c3520683bcac91f05c7fb1e21ea1356a27ae7"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/AuditedAccessDeniedHandler.java",
+          "nonblank_lines": 124,
+          "normalized_utf8_sha256": "1a48de062baa9a6ed7a356ba97bd8119da164d81473b0e9252ae93f4fe948ede"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/DatabaseUserDetailsService.java",
+          "nonblank_lines": 18,
+          "normalized_utf8_sha256": "c54677d269326982a4c259b145575e5a74de6c783dc19f26ac066b4423d811d7"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/LoginController.java",
+          "nonblank_lines": 22,
+          "normalized_utf8_sha256": "6cd28110c12573da1faea901977538a9f1e89f32e1712e864c605f527e123540"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/Role.java",
+          "nonblank_lines": 13,
+          "normalized_utf8_sha256": "2f888fe8ec8917298ee05fc2b7de1e56590159835e13ace1d5584f3e1d61762c"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/UserAccount.java",
+          "nonblank_lines": 9,
+          "normalized_utf8_sha256": "ade2d71d2d00564a9210425c70df5b0346fe6371a551a1a160f332fdcddea4c1"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/identity/UserRepository.java",
+          "nonblank_lines": 24,
+          "normalized_utf8_sha256": "148e71fa077fd2adb4a3ddea6b0842d62b39e0d8a337bccc8390c42d29e4db54"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/Registration.java",
+          "nonblank_lines": 3,
+          "normalized_utf8_sha256": "ff8acbebaa6f481fb2dd95fa25c93809f27697b933329278e9af44c906740bcd"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationAdmission.java",
+          "nonblank_lines": 34,
+          "normalized_utf8_sha256": "8994e739a6f8cdb74a51a7ecea80aab21569f5839a3b72548c1040164e79977d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationController.java",
+          "nonblank_lines": 45,
+          "normalized_utf8_sha256": "0075523fccbf5d97addfa5391ba5768c284bb175abe9e77a8a7e15b0b003ca54"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationDeadlineJob.java",
+          "nonblank_lines": 18,
+          "normalized_utf8_sha256": "a0242e350ddf41ca31656304183544c4f7fb215aeb9040b3aef7aa27aab873b8"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationException.java",
+          "nonblank_lines": 16,
+          "normalized_utf8_sha256": "64ec60c5950e6cb94b1f0d39383f19592c651baa64cc09d44d5aa16941d28c1e"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationRepository.java",
+          "nonblank_lines": 158,
+          "normalized_utf8_sha256": "70507d610a5ceb962901a67bfeb72eca049159239d56adfbb49ac0f254896e57"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationRequestFilter.java",
+          "nonblank_lines": 61,
+          "normalized_utf8_sha256": "a889a0b151c072b9de98fd8adc527adddc27368989a56721622ef272af35b650"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationResult.java",
+          "nonblank_lines": 23,
+          "normalized_utf8_sha256": "6ab392d1d1459f06784150820794ba44fc63927a8d93509bbf9b9db6712420f4"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationRow.java",
+          "nonblank_lines": 15,
+          "normalized_utf8_sha256": "4752c8d19d660250a17fa0ad319470e4d9d1722b1641eaae6099be8efa3a4dfe"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationService.java",
+          "nonblank_lines": 266,
+          "normalized_utf8_sha256": "b38d548f91dd8e8018e537d73386364edd6d9e31c39dc6831848839f6256fff4"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/registration/RegistrationStatus.java",
+          "nonblank_lines": 12,
+          "normalized_utf8_sha256": "ddfc5ab16b16ee4e4f769cbfe43e6a85f75b7e082425b76517e328f160c6ed5d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/AppClock.java",
+          "nonblank_lines": 6,
+          "normalized_utf8_sha256": "0da8bee6570a869f26a3a8317cc6ddb8f415b084f9dc3756dddef2dce75dff27"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/BeijingTime.java",
+          "nonblank_lines": 13,
+          "normalized_utf8_sha256": "8c047c8b9f2ab789b76e6b76ebf1fc6ac8355c4e85da11b25c7e1dfcd9ebb102"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/ManagementScope.java",
+          "nonblank_lines": 21,
+          "normalized_utf8_sha256": "cf7c8b579e16c59917fded44281538a10d118773f2f0e435b353dfe963a9db50"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/ManagementScopeService.java",
+          "nonblank_lines": 55,
+          "normalized_utf8_sha256": "049d23f12a9d3199b5c8ec2624b984d35636d7320413b78ef8dc3fa5a38f465d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/PageClock.java",
+          "nonblank_lines": 15,
+          "normalized_utf8_sha256": "ee8b72b6cfc08ba04d72f7d9bf429c47b1a6e12539c164e26f5d2f60b84bcdb3"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/shared/SystemAppClock.java",
+          "nonblank_lines": 12,
+          "normalized_utf8_sha256": "2a5caafb5cb9c5955de112f2d0fac23c5ce117b340b24808cb07790b784f1c5c"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/CsvWriter.java",
+          "nonblank_lines": 38,
+          "normalized_utf8_sha256": "fe5d4f4f7beb6d0b014cb00c017e90a21ea4e71ea735d9e5f0be07296aa6d710"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/ManagementScopeRepository.java",
+          "nonblank_lines": 43,
+          "normalized_utf8_sha256": "0ab7a3f077bacc7f29995b44cbeeba0b16a71d63bef200b2bb52556fa2aa2ec8"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/SessionStatistics.java",
+          "nonblank_lines": 6,
+          "normalized_utf8_sha256": "5c00de85401434281c753f8435788f578eb4b421842c8018c8ff70c6b0b5f93a"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsController.java",
+          "nonblank_lines": 60,
+          "normalized_utf8_sha256": "6c477091426acd93c83b1fb7a31a35a8914a421da9a3abffe255eda9abda7b5d"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsPage.java",
+          "nonblank_lines": 5,
+          "normalized_utf8_sha256": "9dece72a2bd5d1dc21d45af62ad19b4633134ea8352263e674dc7561a42c68f9"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsRepository.java",
+          "nonblank_lines": 86,
+          "normalized_utf8_sha256": "54bcb33fedc66be9806aceb0aa3b04b61253584795a4d353438704271f9ef0b9"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsRow.java",
+          "nonblank_lines": 8,
+          "normalized_utf8_sha256": "2f400a2866bfa76c76b23d341bd657d9b3c4037eb60645b2a275baeacf3c7f80"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsService.java",
+          "nonblank_lines": 79,
+          "normalized_utf8_sha256": "8ebb016daf674882d132b185f0a3979a408aecaf0399cf83dc3fa62e9a0d4d64"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/statistics/StatisticsSummary.java",
+          "nonblank_lines": 3,
+          "normalized_utf8_sha256": "fe25b32ef2f1e609e6264df7bec794c71c8fb3df59bb143db907c8b56bff0f6f"
+        },
+        {
+          "path": "src/main/java/edu/nju/workshop/WorkshopApplication.java",
+          "nonblank_lines": 14,
+          "normalized_utf8_sha256": "2126266efda666b12a0c668e2a42093bf7715ee8dd9bc7add4b3677961ff659c"
+        }
+      ]
+    },
+    "java_test": {
+      "label": "Java 测试及测试辅助代码",
+      "patterns": [
+        "src/test/java/**/*.java"
+      ],
+      "files": 15,
+      "nonblank_lines": 3217,
+      "entries": [
+        {
+          "path": "src/test/java/edu/nju/workshop/AccessDeniedAuditHttpTest.java",
+          "nonblank_lines": 88,
+          "normalized_utf8_sha256": "856c2c62b7f10f36dd2983715e418bc552b631ddf5b835fb24ffb5985670039a"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/ActivityLifecycleHttpTest.java",
+          "nonblank_lines": 269,
+          "normalized_utf8_sha256": "b28e7ab0ce56b22a409bbc888c7d09d901decc3db16e72ad578d94f9ab00c3a0"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/ActivityPublishingHttpTest.java",
+          "nonblank_lines": 465,
+          "normalized_utf8_sha256": "5d818c510895fdfa71f7ff4d18573fbbd063d99363275b0de9f4b30f5c6cefae"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/ActivityQueryHttpTest.java",
+          "nonblank_lines": 317,
+          "normalized_utf8_sha256": "31fc9ee1b181249d35a673c8281affc462b1bfcc35c2dbda8e09c998faf26147"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/AttendanceLifecycleHttpTest.java",
+          "nonblank_lines": 254,
+          "normalized_utf8_sha256": "cf3509360a5808befb5de6852e2b7953e4274b850a6a8419831c1d4c95458d76"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/AuthHttpTest.java",
+          "nonblank_lines": 159,
+          "normalized_utf8_sha256": "9bc63772cc86a045920b070d745ebf395e5cdb9a43b8efc5cf2eac7061a0dbde"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/CancellationPromotionHttpTest.java",
+          "nonblank_lines": 222,
+          "normalized_utf8_sha256": "b7b8af6d83613328d29997a2b76bedd6711b40d90026ccbf043cb8b41b5246e6"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/LifecycleTestBase.java",
+          "nonblank_lines": 143,
+          "normalized_utf8_sha256": "98c5e2ed709cf79b4a930e86ad319bf4de6f21dcb84d92ab66215c600c14b99c"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/ManagementQueryHttpTest.java",
+          "nonblank_lines": 224,
+          "normalized_utf8_sha256": "ed549fce5c09e873dbc16568e2501b63ebb4c415a5e67938670e6395a36818b2"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/PublishedActivityHttpTest.java",
+          "nonblank_lines": 325,
+          "normalized_utf8_sha256": "2524d931506dd2e463f29737f320b92491286f2ea50a1ef9f10242cc1944e57b"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/RegistrationDeadlineTest.java",
+          "nonblank_lines": 237,
+          "normalized_utf8_sha256": "0efbfabdddec71052c8211ce18ff5cfd576ce7ed3a0dc64d4c4f6ca9d69661d0"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/RegistrationHttpTest.java",
+          "nonblank_lines": 275,
+          "normalized_utf8_sha256": "03c659f4a122617e766b31403ea013ee83790c565d69ca9b7ec78313b48e89fe"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/SchemaAndDemoTest.java",
+          "nonblank_lines": 91,
+          "normalized_utf8_sha256": "68caa501bf6719517d283115e666e0da1e7c94c10737eeaa7b750c52b9d143ad"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/shared/MutableClock.java",
+          "nonblank_lines": 17,
+          "normalized_utf8_sha256": "3bd5bd15bed8e6533b2722fb7c26486e3106b0f13d381373a61d3155406c2d57"
+        },
+        {
+          "path": "src/test/java/edu/nju/workshop/WorkshopTestBase.java",
+          "nonblank_lines": 131,
+          "normalized_utf8_sha256": "3f5bbea8d6d77539a4c5a02fb2fe9b5fed5526097f2deb218652aeb2de51c9a1"
+        }
+      ]
+    },
+    "templates": {
+      "label": "Thymeleaf / HTML 模板",
+      "patterns": [
+        "src/main/resources/templates/**/*.html"
+      ],
+      "files": 17,
+      "nonblank_lines": 967,
+      "entries": [
+        {
+          "path": "src/main/resources/templates/admin-activities.html",
+          "nonblank_lines": 29,
+          "normalized_utf8_sha256": "41c386718c2e70a678de4f6d8da9f6d9e0a976ff109ff7605032ca43bc2f78a8"
+        },
+        {
+          "path": "src/main/resources/templates/admin-activity.html",
+          "nonblank_lines": 59,
+          "normalized_utf8_sha256": "aa7db7b762a5ed337eb8aec486d733f2da117f5c604b0c768ff2fe1eddd0253d"
+        },
+        {
+          "path": "src/main/resources/templates/admin-review.html",
+          "nonblank_lines": 84,
+          "normalized_utf8_sha256": "1d63cf4aac9e117e6aca83014c47ad4ce7ad822640e26f7f70f04aaa07f9ab27"
+        },
+        {
+          "path": "src/main/resources/templates/admin-reviews.html",
+          "nonblank_lines": 31,
+          "normalized_utf8_sha256": "73fbf64ec57462b147734886780b33419dbd77227286f988ab42d26e354e8318"
+        },
+        {
+          "path": "src/main/resources/templates/attendance.html",
+          "nonblank_lines": 69,
+          "normalized_utf8_sha256": "57a5e3bb040e1ab70c6031a8fcf199be17863a35f0ee3ce08d9c115cde86657d"
+        },
+        {
+          "path": "src/main/resources/templates/denied.html",
+          "nonblank_lines": 17,
+          "normalized_utf8_sha256": "69aa653aec74c89a07dd14162b45cb436fe93f7d6242bc4c42a6fa0f96708508"
+        },
+        {
+          "path": "src/main/resources/templates/error.html",
+          "nonblank_lines": 15,
+          "normalized_utf8_sha256": "c85744ec2bc01cda7e89f8e823adbca09260e8b89ebcf975e248879d40401d8e"
+        },
+        {
+          "path": "src/main/resources/templates/fragments/header.html",
+          "nonblank_lines": 38,
+          "normalized_utf8_sha256": "9984329a8ad9d1751571873bfa652fa687a4b8b96575a04924669038470c9ec4"
+        },
+        {
+          "path": "src/main/resources/templates/login.html",
+          "nonblank_lines": 39,
+          "normalized_utf8_sha256": "a9cdaeb94c3ebc3cb57f23e6c48002b344774f0cdcac94d073f9a9eb4b16c540"
+        },
+        {
+          "path": "src/main/resources/templates/management-query-error.html",
+          "nonblank_lines": 18,
+          "normalized_utf8_sha256": "fa070b49deb3a144ae51c76d233bc120a4668b21cb3e9d5b2bb7f90ce400a6b2"
+        },
+        {
+          "path": "src/main/resources/templates/my-registrations.html",
+          "nonblank_lines": 58,
+          "normalized_utf8_sha256": "75f798bc64bd3fede5f217fae01a55073e8f5dc894074fb3a9f45ef17b02cac8"
+        },
+        {
+          "path": "src/main/resources/templates/operation-logs.html",
+          "nonblank_lines": 95,
+          "normalized_utf8_sha256": "bce70ef3b1f809e63c19d68acbdead0264a8bbe04fa9e804a9eabc8064113d27"
+        },
+        {
+          "path": "src/main/resources/templates/organizer-activities.html",
+          "nonblank_lines": 58,
+          "normalized_utf8_sha256": "f42d9ff7f7710ac218d5f83c99f23b09ad40f5baf5611c0827fc50b3005001c6"
+        },
+        {
+          "path": "src/main/resources/templates/organizer-activity.html",
+          "nonblank_lines": 141,
+          "normalized_utf8_sha256": "327aa42c618a682e6855849efed029d519844b1228af2a73092190f64c09b785"
+        },
+        {
+          "path": "src/main/resources/templates/placeholder.html",
+          "nonblank_lines": 17,
+          "normalized_utf8_sha256": "bfb62b9f09bda480cb3347bb0d48705254fdce231275dae2db7f478cf683c508"
+        },
+        {
+          "path": "src/main/resources/templates/statistics.html",
+          "nonblank_lines": 84,
+          "normalized_utf8_sha256": "f4e66b07c1f9ea988c830cfe7b33a0dab88529a61284206aea285a73fa64ece0"
+        },
+        {
+          "path": "src/main/resources/templates/workshops.html",
+          "nonblank_lines": 115,
+          "normalized_utf8_sha256": "c7c63edab87ca82124c0d08a552651173536face58fa3fd9188469b15aa3674c"
+        }
+      ]
+    },
+    "javascript": {
+      "label": "JavaScript",
+      "patterns": [
+        "src/main/resources/static/js/**/*.js"
+      ],
+      "files": 2,
+      "nonblank_lines": 219,
+      "entries": [
+        {
+          "path": "src/main/resources/static/js/lifecycle.js",
+          "nonblank_lines": 81,
+          "normalized_utf8_sha256": "c9878e6c320368216ba559869274c432b4a504fc1309bcdaf69793f3b8d93090"
+        },
+        {
+          "path": "src/main/resources/static/js/workshops.js",
+          "nonblank_lines": 138,
+          "normalized_utf8_sha256": "044adf63cbe2dcaa421bb3b4e3fa4f3c1ba1829d06e5ac9ee1b3ea47a873781e"
+        }
+      ]
+    },
+    "css": {
+      "label": "CSS",
+      "patterns": [
+        "src/main/resources/static/css/**/*.css"
+      ],
+      "files": 5,
+      "nonblank_lines": 463,
+      "entries": [
+        {
+          "path": "src/main/resources/static/css/activity-management.css",
+          "nonblank_lines": 106,
+          "normalized_utf8_sha256": "6ba227b650d7888253e528febf2f04061e25aa90166129763fcada6a626c2a5d"
+        },
+        {
+          "path": "src/main/resources/static/css/management-query.css",
+          "nonblank_lines": 38,
+          "normalized_utf8_sha256": "bbe4e6c2023badb641a79046aaec47f869f48c3124b269cbc2a7b14fde3bc2ec"
+        },
+        {
+          "path": "src/main/resources/static/css/registrations.css",
+          "nonblank_lines": 25,
+          "normalized_utf8_sha256": "6231f7b1ffa761c16377b06950855336ca853ca9a00a1aacae172b59a823e725"
+        },
+        {
+          "path": "src/main/resources/static/css/site.css",
+          "nonblank_lines": 171,
+          "normalized_utf8_sha256": "f8e1c90038c2785d2e5b12cecd7bcda632018eeef74c36a08d65e98efde1c04e"
+        },
+        {
+          "path": "src/main/resources/static/css/workshops.css",
+          "nonblank_lines": 123,
+          "normalized_utf8_sha256": "f68435af2a5181b9d07f46f58fe6fcf17b3ff2dc70072980f0f8080e3bd00c80"
+        }
+      ]
+    },
+    "sql": {
+      "label": "数据库结构、迁移和演示数据 SQL",
+      "patterns": [
+        "src/main/resources/db/**/*.sql"
+      ],
+      "files": 5,
+      "nonblank_lines": 177,
+      "entries": [
+        {
+          "path": "src/main/resources/db/V001__schema.sql",
+          "nonblank_lines": 91,
+          "normalized_utf8_sha256": "1d937d68980b4aeaa924b6e8420c58e2b5d1735d1a4fc3a55cf99135ab5378c1"
+        },
+        {
+          "path": "src/main/resources/db/V002__demo.sql",
+          "nonblank_lines": 78,
+          "normalized_utf8_sha256": "2c064bf3557f9a85271ab08c60270fa8e2d4a8d761506a45c9d572596039d254"
+        },
+        {
+          "path": "src/main/resources/db/V003__review_version.sql",
+          "nonblank_lines": 2,
+          "normalized_utf8_sha256": "604059f3e530f8b55a4178d5eb8dc6c452ef260550779e0a3c85740072440b3d"
+        },
+        {
+          "path": "src/main/resources/db/V004__session_review_version.sql",
+          "nonblank_lines": 2,
+          "normalized_utf8_sha256": "84ed9c2cdc0aaf9790a8b6a9eeff4bcbe17a119606ea0a1636f70e856a95f713"
+        },
+        {
+          "path": "src/main/resources/db/V005__cancelled_session_visibility.sql",
+          "nonblank_lines": 4,
+          "normalized_utf8_sha256": "f1b45404357048376e171fec3d495eabefe9caabaa19c10d1bf421570a5015b4"
+        }
+      ]
+    },
+    "configuration": {
+      "label": "构建、运行和风格配置",
+      "patterns": [
+        "pom.xml",
+        "src/main/resources/application.yml",
+        "config/checkstyle/checkstyle.xml"
+      ],
+      "files": 3,
+      "nonblank_lines": 188,
+      "entries": [
+        {
+          "path": "config/checkstyle/checkstyle.xml",
+          "nonblank_lines": 59,
+          "normalized_utf8_sha256": "c8045f0daf7c175c8f76f3cb03f684c8d74bf9274756dcd1761c9082c11515b6"
+        },
+        {
+          "path": "pom.xml",
+          "nonblank_lines": 104,
+          "normalized_utf8_sha256": "66180cd5074bf0114637420618835d217c5b038281a9d028fdefbdfb0206ce33"
+        },
+        {
+          "path": "src/main/resources/application.yml",
+          "nonblank_lines": 25,
+          "normalized_utf8_sha256": "1fefff1ebaebfd2baa9b3a9d3698f0f7fb004ca262ca43bd2432e49734bcc38e"
+        }
+      ]
+    },
+    "python_tools": {
+      "label": "Python 验收与统计工具",
+      "patterns": [
+        "tools/*.py"
+      ],
+      "files": 2,
+      "nonblank_lines": 507,
+      "entries": [
+        {
+          "path": "tools/performance_acceptance.py",
+          "nonblank_lines": 414,
+          "normalized_utf8_sha256": "a710d4ba8516c9f2c4e3a4f412f23b6a0793da005a85b2fd84cffd0e58e3f74c"
+        },
+        {
+          "path": "tools/source_size.py",
+          "nonblank_lines": 93,
+          "normalized_utf8_sha256": "e6fe70a5f22715cc1000c77bfb18d88f8c9b9edc5efb81169c8d98107d2dc874"
+        }
+      ]
+    },
+    "generated_wrapper": {
+      "label": "Maven Wrapper 工具生成文件",
+      "patterns": [
+        "mvnw",
+        "mvnw.cmd",
+        ".mvn/wrapper/maven-wrapper.properties"
+      ],
+      "files": 3,
+      "nonblank_lines": 386,
+      "entries": [
+        {
+          "path": ".mvn/wrapper/maven-wrapper.properties",
+          "nonblank_lines": 19,
+          "normalized_utf8_sha256": "f598eb77b3b4ccc7d3c0567484bf31e4b3a0945dda45e99a7334c2722a58f0ce"
+        },
+        {
+          "path": "mvnw",
+          "nonblank_lines": 233,
+          "normalized_utf8_sha256": "7e6e5d26712efd78140f2f63dafe8d17028f6c5c97ac1f746a043110b7a1d9ad"
+        },
+        {
+          "path": "mvnw.cmd",
+          "nonblank_lines": 134,
+          "normalized_utf8_sha256": "ee6e9472ce70c7eaadefefa227a0583ade41ae55da67f7b538e613de8cc6aacc"
+        }
+      ]
+    }
+  },
+  "totals": {
+    "application": {
+      "categories": [
+        "java_production",
+        "templates",
+        "javascript",
+        "css",
+        "sql",
+        "configuration"
+      ],
+      "files": 103,
+      "nonblank_lines": 5430
+    },
+    "java_tests": {
+      "categories": [
+        "java_test"
+      ],
+      "files": 15,
+      "nonblank_lines": 3217
+    },
+    "support_tools": {
+      "categories": [
+        "python_tools"
+      ],
+      "files": 2,
+      "nonblank_lines": 507
+    },
+    "generated": {
+      "categories": [
+        "generated_wrapper"
+      ],
+      "files": 3,
+      "nonblank_lines": 386
+    }
+  }
+}

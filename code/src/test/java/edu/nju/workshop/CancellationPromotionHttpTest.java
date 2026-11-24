@@ -8,14 +8,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import edu.nju.workshop.identity.AccountUser;
+import edu.nju.workshop.identity.Role;
+import edu.nju.workshop.identity.UserAccount;
+import edu.nju.workshop.statistics.StatisticsService;
+import edu.nju.workshop.statistics.StatisticsSummary;
 import jakarta.servlet.ServletException;
 import java.util.List;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class CancellationPromotionHttpTest extends LifecycleTestBase {
+
+  @Autowired
+  StatisticsService statistics;
 
   @RepeatedTest(10)
   void cancellationPromotesOnlyTheEarliestWaitlistRecordInEachIndependentRound()
@@ -23,11 +32,18 @@ class CancellationPromotionHttpTest extends LifecycleTestBase {
     registration(10, 1, 1, "REGISTERED");
     queued(20, 4, 9);
     queued(30, 5, 7);
-    submit(write(1, cancelPath(1, 10)), 200);
+    var result = submit(write(1, cancelPath(1, 10)), 200);
+    assertEquals(10, result.path("registrationId").asLong());
+    assertEquals("CANCELLED", result.path("status").asText());
+    assertEquals(0, result.path("remaining").asInt());
     assertEquals("CANCELLED", state(10));
     assertEquals("WAITLIST", state(20));
     assertEquals("REGISTERED", state(30));
     assertEquals(1, occupied(1));
+    assertEquals(1, count("SELECT capacity FROM sessions WHERE id = 1"));
+    var organizer = new AccountUser(new UserAccount(2, "su_qing", "", "苏清和", Role.ORGANIZER));
+    assertEquals(new StatisticsSummary(1, 0, 0, 0),
+        statistics.search(organizer, 1L, 1L, 1).pageData().summary());
     assertEquals(1, logs("CANCEL_REGISTRATION", "SUCCESS"));
     assertEquals(1, logs("PROMOTE_WAITLIST", "SUCCESS"));
     assertTransition(10, "CANCEL_REGISTRATION", 1L, "REGISTERED", "CANCELLED");

@@ -13,7 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.nju.workshop.identity.AccountUser;
+import edu.nju.workshop.identity.Role;
+import edu.nju.workshop.identity.UserAccount;
 import edu.nju.workshop.registration.RegistrationService;
+import edu.nju.workshop.statistics.StatisticsService;
+import edu.nju.workshop.statistics.StatisticsSummary;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,6 +29,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -31,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 class RegistrationHttpTest extends WorkshopTestBase {
@@ -40,6 +47,9 @@ class RegistrationHttpTest extends WorkshopTestBase {
 
   @Autowired
   RegistrationService registrations;
+
+  @Autowired
+  StatisticsService statistics;
 
   private MockHttpSession participant;
   private MockHttpSession other;
@@ -58,7 +68,7 @@ class RegistrationHttpTest extends WorkshopTestBase {
     other = login("chen_an", "PARTICIPANT");
   }
 
-  @Test
+  @RepeatedTest(10)
   void registrationReturnsCurrentStateAndRepeatedRequestsReuseItsRecord() throws Exception {
     jdbc.update("UPDATE sessions SET capacity = 2 WHERE id = 1");
     apply(participant, 1, "waitlist", 409);
@@ -74,10 +84,16 @@ class RegistrationHttpTest extends WorkshopTestBase {
         "SELECT registered_at FROM registrations WHERE id = ?", LocalDateTime.class, id));
     assertEquals(1, count("SELECT COUNT(*) FROM operation_logs WHERE action = 'REGISTER'"
         + " AND result = 'SUCCESS' AND registration_id = ? AND actor_id = 1", id));
-    for (int i = 0; i < 10; i++) {
-      assertEquals(id, apply(participant, 1, "register", 200).path("registrationId").asLong());
+    for (int i = 1; i < 10; i++) {
+      JsonNode repeated = apply(participant, 1, "register", 200);
+      assertEquals(id, repeated.path("registrationId").asLong());
+      assertEquals("REGISTERED", repeated.path("status").asText());
+      assertEquals(1, repeated.path("remaining").asInt());
     }
     assertEquals(1, count("SELECT COUNT(*) FROM registrations"));
+    assertEquals(1, count("SELECT COUNT(*) FROM registrations WHERE status = 'REGISTERED'"));
+    assertEquals(2, count("SELECT capacity FROM sessions WHERE id = 1"));
+    assertSummary(1);
     assertTrue(sessionMarkup(body(participant, "/workshops"), 1).contains("已报名"));
   }
 
@@ -134,7 +150,7 @@ class RegistrationHttpTest extends WorkshopTestBase {
     assertEquals(1, count("SELECT COUNT(*) FROM registrations"));
   }
 
-  @Test
+  @RepeatedTest(10)
   void twentyParticipantsCompeteForOneSeatAndALoserCanThenWaitlist() throws Exception {
     List<MockHttpSession> applicants = new ArrayList<>();
     for (int i = 0; i < 20; i++) {
@@ -144,28 +160,39 @@ class RegistrationHttpTest extends WorkshopTestBase {
     CountDownLatch ready = new CountDownLatch(20);
     CountDownLatch start = new CountDownLatch(1);
     try (var executor = Executors.newFixedThreadPool(20)) {
-      List<Future<Integer>> results = new ArrayList<>();
+      List<Future<MvcResult>> results = new ArrayList<>();
       for (MockHttpSession applicant : applicants) {
         results.add(executor.submit(() -> {
           ready.countDown();
           assertTrue(start.await(5, TimeUnit.SECONDS));
-          return mvc.perform(request(applicant, 1, "register"))
-              .andReturn().getResponse().getStatus();
+          return mvc.perform(request(applicant, 1, "register")).andReturn();
         }));
       }
       assertTrue(ready.await(5, TimeUnit.SECONDS));
       start.countDown();
       List<Integer> statuses = new ArrayList<>();
-      for (Future<Integer> result : results) {
-        statuses.add(result.get(15, TimeUnit.SECONDS));
+      for (int i = 0; i < results.size(); i++) {
+        var response = results.get(i).get(15, TimeUnit.SECONDS).getResponse();
+        statuses.add(response.getStatus());
+        JsonNode payload = json.readTree(response.getContentAsString(StandardCharsets.UTF_8));
+        assertEquals(0, payload.path("remaining").asInt());
+        if (response.getStatus() == 200) {
+          assertEquals("REGISTERED", payload.path("status").asText());
+          assertEquals(1, count("SELECT COUNT(*) FROM registrations WHERE id = ?"
+              + " AND participant_id = ? AND status = 'REGISTERED'",
+              payload.path("registrationId").asLong(), 100 + i));
+        }
       }
       assertEquals(1, statuses.stream().filter(value -> value == 200).count());
       assertEquals(19, statuses.stream().filter(value -> value == 409).count());
       assertEquals(1, count("SELECT COUNT(*) FROM registrations"));
+      assertEquals(1, count("SELECT capacity FROM sessions WHERE id = 1"));
+      assertSummary(0);
       apply(applicants.get(statuses.indexOf(409)), 1, "waitlist", 200);
     }
     assertEquals(1, count("SELECT COUNT(*) FROM registrations WHERE status = 'REGISTERED'"));
     assertEquals(1, count("SELECT COUNT(*) FROM registrations WHERE status = 'WAITLIST'"));
+    assertSummary(0);
   }
 
   @Test
@@ -259,5 +286,11 @@ class RegistrationHttpTest extends WorkshopTestBase {
 
   private int count(String sql, Object... arguments) {
     return jdbc.queryForObject(sql, Integer.class, arguments);
+  }
+
+  private void assertSummary(long remaining) {
+    var organizer = new AccountUser(new UserAccount(2, "su_qing", "", "苏清和", Role.ORGANIZER));
+    assertEquals(new StatisticsSummary(1, 0, 0, remaining),
+        statistics.search(organizer, 1L, 1L, 1).pageData().summary());
   }
 }

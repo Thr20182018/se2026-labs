@@ -23,6 +23,14 @@ exit;
 
 演示账号见 `V002__demo.sql`，密码都是 `Demo-2026`。库里只保存 BCrypt 哈希。
 
+| 角色 | 账号 |
+|---|---|
+| 参与者 | `lin_zy`、`chen_an`、`wang_he`、`xu_lin` |
+| 组织者 | `su_qing`、`zhao_ming` |
+| 管理员 | `he_qm` |
+
+演示场次采用 2026 年 11 月的固定日期。体验报名流程时，用组织者创建一个未来场次，设置未来的报名截止时间，再由管理员审核发布。
+
 已有 T2-A 数据库升级时，执行一次 `V004__session_review_version.sql`，为场次添加独立审核版本。T1 数据库先执行 `V003__review_version.sql`，再执行 V004。升级脚本保留现有数据。
 
 T4＋T5 启动前执行一次 V005，记录场次取消前是否已发布，保留已有取消场次的公开展示。未发布的场次取消后仍不对参与者展示。
@@ -33,6 +41,14 @@ T4＋T5 启动前执行一次 V005，记录场次取消前是否已发布，保�
 ```
 
 Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify` 运行 JUnit 和 Checkstyle，测试只在校验通过的 `workshop_test` 库重建表。
+
+`verify` 同时生成可执行 JAR。保持上述开发库环境变量后，也可以直接运行：
+
+```powershell
+java -jar target/campus-workshop-0.1.0.jar
+```
+
+完整验收见 [T7 需求对应](docs/T7需求验收.md) 和 [T7 验收记录](docs/T7验收记录.md)。性能脚本的独立库准备和运行方式见 [tools/README.md](tools/README.md)，UML 对应与报告材料见 [T7 交付材料](docs/T7交付材料.md)。
 
 查询页以行展示活动名称、时间、地点和报名状态。可报名和可候补的场次优先，已截止和已取消的排在后面，各组按开始时间排序。点击场次原地展开详情，再次点击收起，切换场次时自动关闭上一项；支持 Enter、空格和 Esc 操作。校徽沿用实验二资源，来源：[南京大学标识](https://www.nju.edu.cn/ndgk/ndbs.htm)。
 
