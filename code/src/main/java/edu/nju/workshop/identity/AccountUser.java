@@ -9,15 +9,17 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/** 登录会话中的身份。页面只使用姓名和角色，不读取密码哈希。 */
+/** 登录会话身份，提供账号、姓名、角色及 Spring Security 认证所需的密码哈希. */
 public class AccountUser implements UserDetails, Serializable {
 
   private final UserAccount account;
 
+  /** 将数据库账号包装为登录会话身份. */
   public AccountUser(UserAccount account) {
     this.account = account;
   }
 
+  /** 取得当前请求的登录身份，未登录时拒绝继续处理. */
   public static AccountUser current() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof AccountUser user)) {

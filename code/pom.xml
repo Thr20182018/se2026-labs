@@ -88,11 +88,11 @@
           </dependency>
         </dependencies>
         <configuration>
-          <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+          <configLocation>google_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
-          <violationSeverity>error</violationSeverity>
+          <violationSeverity>warning</violationSeverity>
         </configuration>
         <executions>
           <execution>

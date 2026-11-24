@@ -44,7 +44,7 @@ abstract class WorkshopTestBase {
   MutableClock clock;
 
   /**
-   * 测试用 TEST_DB_* 覆盖应用的 SPRING_DATASOURCE_* 连接，重置数据前另行校验库名。
+   * 测试用 TEST_DB_* 覆盖应用的 SPRING_DATASOURCE_* 连接，重置数据前另行校验库名.
    */
   @DynamicPropertySource
   static void testDatabase(DynamicPropertyRegistry registry) {

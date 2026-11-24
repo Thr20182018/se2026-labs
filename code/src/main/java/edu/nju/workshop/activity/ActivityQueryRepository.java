@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 按公开范围查询场次，统一计算报名情况、列表排序和选中场次所在页. */
 @Repository
 public class ActivityQueryRepository {
 
@@ -36,10 +37,12 @@ public class ActivityQueryRepository {
 
   private final JdbcTemplate jdbc;
 
+  /** 使用业务数据库查询公开场次和报名人数. */
   public ActivityQueryRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }
 
+  /** 返回筛选结果的一页；指定选中场次时优先定位其所在页. */
   public QueryPage search(ActivityQuery query, LocalDateTime now, int pageSize, long selected) {
     List<Object> filters = new ArrayList<>();
     String where = where(query, now, filters);

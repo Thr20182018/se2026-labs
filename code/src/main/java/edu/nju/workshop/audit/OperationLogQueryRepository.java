@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 按已授权的管理范围查询日志数量、分页及详情. */
 @Repository
 public class OperationLogQueryRepository {
 
@@ -27,6 +28,7 @@ public class OperationLogQueryRepository {
       """;
   private final JdbcTemplate jdbc;
 
+  /** 使用数据库模板读取操作日志及关联展示信息. */
   public OperationLogQueryRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }

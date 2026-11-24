@@ -3,6 +3,7 @@ package edu.nju.workshop.activity;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+/** 工作坊列表的名称、日期范围、报名情况及页码筛选条件. */
 public record ActivityQuery(
     String keyword,
     LocalDate dateFrom,
@@ -10,6 +11,7 @@ public record ActivityQuery(
     Availability availability,
     int page) {
 
+  /** 解析查询参数并校验日期范围与页码，空筛选项表示不限制. */
   public static ActivityQuery parse(
       String keyword, String dateFrom, String dateTo, String availability, String page) {
     LocalDate from = parseDate(dateFrom);

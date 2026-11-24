@@ -17,6 +17,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** 校验组织者归属，并在场次锁保护下处理签到与缺席转换. */
 @Service
 public class AttendanceService {
   private final AttendanceRepository repository;
@@ -25,6 +26,7 @@ public class AttendanceService {
   private final AppClock clock;
   private final TransactionTemplate transaction;
 
+  /** 配置签到依赖及读取已提交状态的事务模板. */
   public AttendanceService(AttendanceRepository repository, ActivityManagementService management,
       OperationLogService logs, AppClock clock, PlatformTransactionManager transactions) {
     this.repository = repository;
@@ -35,6 +37,7 @@ public class AttendanceService {
     transaction.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
   }
 
+  /** 校验活动和场次归属后返回签到页面所需数据. */
   @Transactional(readOnly = true)
   public AttendancePage attendance(long actorId, long activityId, long sessionId) {
     ManagedActivity activity = management.ownedActivity(actorId, activityId);
@@ -43,12 +46,13 @@ public class AttendanceService {
     return new AttendancePage(activity, session, repository.attendees(sessionId));
   }
 
+  /** 在场次事务内办理签到，重复签到返回已有结果. */
   public String checkIn(long actorId, long activityId, long sessionId, long registrationId) {
     try {
       return transaction.execute(tx -> {
         var session = repository.lock(sessionId);
         // 场次锁串行化报名与取消；父活动使用已提交读取，不反向获取活动写锁。
-        ManagedActivity activity = management.ownedActivity(actorId, activityId);
+        final ManagedActivity activity = management.ownedActivity(actorId, activityId);
         if (session == null) {
           throw new ActivityException(404, "场次不存在");
         }
@@ -86,6 +90,7 @@ public class AttendanceService {
     }
   }
 
+  /** 将已结束场次中仍处于报名成功状态的记录转为缺席. */
   public void markEndedAbsent() {
     for (long sessionId : repository.endedSessions(now())) {
       markAbsent(sessionId);
@@ -125,6 +130,7 @@ public class AttendanceService {
     return BeijingTime.toLocal(clock.now());
   }
 
+  /** 组织者签到页所需的活动、场次及参与者名单. */
   public record AttendancePage(ManagedActivity activity, ManagedSession session,
       List<AttendanceRow> attendees) {
   }

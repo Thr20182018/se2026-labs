@@ -42,6 +42,8 @@ T4＋T5 启动前执行一次 V005，记录场次取消前是否已发布，保�
 
 Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify` 运行 JUnit 和 Checkstyle，测试只在校验通过的 `workshop_test` 库重建表。
 
+Java 风格检查使用 Checkstyle 10.26.1 内置的完整 `google_checks.xml`，覆盖生产和测试代码，warning 及以上违规会使构建失败。单独检查风格运行 `.\mvnw.cmd checkstyle:check`。
+
 `verify` 同时生成可执行 JAR。保持上述开发库环境变量后，也可以直接运行：
 
 ```powershell

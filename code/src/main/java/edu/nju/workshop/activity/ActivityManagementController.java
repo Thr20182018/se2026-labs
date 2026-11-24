@@ -17,18 +17,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/** 提供组织者的活动编辑入口，以及管理员的首次发布和后续维护审核页面. */
 @Controller
 public class ActivityManagementController {
 
   private final ActivityManagementService service;
   private final PublishedActivityService published;
 
+  /** 组合草稿管理与发布后维护服务，处理活动表单和审核请求. */
   public ActivityManagementController(ActivityManagementService service,
       PublishedActivityService published) {
     this.service = service;
     this.published = published;
   }
 
+  /** 展示当前组织者的活动列表及新建活动表单. */
   @GetMapping("/organizer/activities")
   public String activities(Model model) {
     model.addAttribute("activities", service.owned(actor()));
@@ -36,6 +39,7 @@ public class ActivityManagementController {
     return "organizer-activities";
   }
 
+  /** 创建活动草稿；校验失败时保留输入并返回活动列表. */
   @PostMapping("/organizer/activities")
   public String create(@RequestParam(defaultValue = "") String name,
       @RequestParam(defaultValue = "") String description, Model model,
@@ -53,6 +57,7 @@ public class ActivityManagementController {
     }
   }
 
+  /** 展示本人活动详情，并准备活动、场次和发布后内容修改表单. */
   @GetMapping("/organizer/activities/{id}")
   public String activity(@PathVariable long id, Model model) {
     ManagedActivity activity = service.ownedActivity(actor(), id);
@@ -66,6 +71,7 @@ public class ActivityManagementController {
     return "organizer-activity";
   }
 
+  /** 保存活动草稿的名称和简介，失败时回填本次输入. */
   @PostMapping("/organizer/activities/{id}")
   public String edit(@PathVariable long id, @RequestParam(defaultValue = "") String name,
       @RequestParam(defaultValue = "") String description, Model model,
@@ -83,6 +89,7 @@ public class ActivityManagementController {
     }
   }
 
+  /** 根据是否提供场次编号创建或编辑场次，并保留失败表单的输入. */
   @PostMapping({"/organizer/activities/{id}/sessions",
       "/organizer/activities/{id}/sessions/{sessionId}"})
   public String saveSession(@PathVariable long id,
@@ -111,6 +118,7 @@ public class ActivityManagementController {
     }
   }
 
+  /** 提交活动及其场次的首次发布申请，随后返回活动详情. */
   @PostMapping("/organizer/activities/{id}/submit")
   public String submit(@PathVariable long id, Model model, HttpServletResponse response,
       RedirectAttributes redirect) {
@@ -125,12 +133,14 @@ public class ActivityManagementController {
     }
   }
 
+  /** 展示首次发布、内容修改和新增场次的统一待审核队列. */
   @GetMapping("/admin/reviews")
   public String reviews(Model model) {
     model.addAttribute("requests", published.pendingReviews(actor()));
     return "admin-reviews";
   }
 
+  /** 将请求入口登记的接收时间用于容量调整，并返回 JSON 结果. */
   @PostMapping("/organizer/activities/{id}/sessions/{sessionId}/capacity")
   public ResponseEntity<Map<String, String>> capacity(@PathVariable long id,
       @PathVariable long sessionId, @RequestParam(defaultValue = "") String capacity,
@@ -145,11 +155,13 @@ public class ActivityManagementController {
     }
   }
 
+  /** 展示活动首次发布申请的审核详情. */
   @GetMapping("/admin/reviews/{id}")
   public String review(@PathVariable long id, Model model) {
     return reviewPage(id, null, "FIRST", model);
   }
 
+  /** 按表单携带的审核版本处理首次发布申请，并回显结果. */
   @PostMapping("/admin/reviews/{id}")
   public String decide(@PathVariable long id, @RequestParam(defaultValue = "") String decision,
       @RequestParam(defaultValue = "-1") long reviewVersion, Model model,
@@ -166,6 +178,7 @@ public class ActivityManagementController {
     }
   }
 
+  /** 提交已发布活动的内容修改申请，失败时保留待提交内容. */
   @PostMapping("/organizer/activities/{id}/revision")
   public String submitRevision(@PathVariable long id,
       @RequestParam(defaultValue = "") String name,
@@ -184,6 +197,7 @@ public class ActivityManagementController {
     }
   }
 
+  /** 提交已发布活动中新增场次的独立审核申请. */
   @PostMapping("/organizer/activities/{id}/sessions/{sessionId}/submit")
   public String submitSession(@PathVariable long id, @PathVariable long sessionId,
       Model model, HttpServletResponse response, RedirectAttributes redirect) {
@@ -198,16 +212,19 @@ public class ActivityManagementController {
     }
   }
 
+  /** 展示活动内容修改申请的审核详情. */
   @GetMapping("/admin/reviews/{id}/revision")
   public String revision(@PathVariable long id, Model model) {
     return reviewPage(id, null, "REVISION", model);
   }
 
+  /** 展示指定新增场次的审核详情. */
   @GetMapping("/admin/reviews/{id}/sessions/{sessionId}")
   public String sessionReview(@PathVariable long id, @PathVariable long sessionId, Model model) {
     return reviewPage(id, sessionId, "SESSION", model);
   }
 
+  /** 按请求路径处理内容修改或新增场次审核，通过后返回审核队列. */
   @PostMapping({"/admin/reviews/{id}/revision",
       "/admin/reviews/{id}/sessions/{sessionId}"})
   public String decideMaintenance(@PathVariable long id,
@@ -254,6 +271,7 @@ public class ActivityManagementController {
     return "admin-review";
   }
 
+  /** 将活动读取失败转换为业务状态码及权限拒绝或错误页面. */
   @ExceptionHandler(ActivityException.class)
   public String readFailure(ActivityException ex, HttpServletResponse response, Model model) {
     return failure(ex, response, model, "error");

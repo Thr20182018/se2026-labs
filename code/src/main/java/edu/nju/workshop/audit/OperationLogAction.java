@@ -1,6 +1,6 @@
 package edu.nju.workshop.audit;
 
-/** 日志操作名称不包含完成时态，失败记录也使用同一名称。 */
+/** 日志操作名称不包含完成时态，失败记录也使用同一名称. */
 public enum OperationLogAction {
   CREATE_ACTIVITY("创建活动"),
   UPDATE_ACTIVITY("修改活动"),
@@ -42,6 +42,7 @@ public enum OperationLogAction {
     return label;
   }
 
+  /** 返回操作类型的中文名称，未知类型保留原值. */
   public static String labelOf(String action) {
     try {
       return valueOf(action).label;

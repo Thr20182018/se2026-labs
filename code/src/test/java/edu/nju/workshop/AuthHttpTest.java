@@ -101,7 +101,7 @@ class AuthHttpTest extends WorkshopTestBase {
 
   @Test
   void organizerCannotReadAnotherOrganizersActivityByChangingId() throws Exception {
-    int before = jdbc.queryForObject("SELECT COUNT(*) FROM activities", Integer.class);
+    final int before = jdbc.queryForObject("SELECT COUNT(*) FROM activities", Integer.class);
     assertTrue(body(login("su_qing", "ORGANIZER"), "/organizer/activities/1")
         .contains("仅苏清和可见"));
     denied(login("zhao_ming", "ORGANIZER"), "/organizer/activities/1", "仅苏清和可见");

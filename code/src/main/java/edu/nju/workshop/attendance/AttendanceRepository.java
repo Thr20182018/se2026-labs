@@ -9,10 +9,12 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 读取签到名单并保存场次锁保护下的签到和缺席状态. */
 @Repository
 public class AttendanceRepository {
   private final JdbcTemplate jdbc;
 
+  /** 使用数据库模板查询和更新签到记录. */
   public AttendanceRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }

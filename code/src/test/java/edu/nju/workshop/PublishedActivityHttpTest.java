@@ -185,7 +185,7 @@ class PublishedActivityHttpTest extends WorkshopTestBase {
     assertTrue(queue.contains("/admin/reviews/10/revision"));
     assertTrue(queue.contains("/admin/reviews/10/sessions/" + first));
     assertTrue(queue.contains("/admin/reviews/10/sessions/" + second));
-    long revisionVersion = version("activities", 10);
+    final long revisionVersion = version("activities", 10);
     long sessionVersion = version("sessions", first);
     MockHttpSession secondAdmin = login("lu_xi", "ADMIN");
     CountDownLatch ready = new CountDownLatch(2);

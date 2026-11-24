@@ -3,10 +3,12 @@ package edu.nju.workshop.activity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/** 保存活动与场次的取消状态，并清理失效的待审内容. */
 @Repository
 public class ActivityLifecycleRepository {
   private final JdbcTemplate jdbc;
 
+  /** 使用业务数据库执行活动和场次的取消更新. */
   public ActivityLifecycleRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }

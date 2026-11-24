@@ -13,18 +13,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/** 提供组织者和管理员的日志筛选及详情页面入口. */
 @Controller
 public class OperationLogQueryController {
 
   private final ManagementScopeService scopes;
   private final OperationLogQueryService service;
 
+  /** 使用权限范围服务和日志查询服务组装日志页面. */
   public OperationLogQueryController(ManagementScopeService scopes,
       OperationLogQueryService service) {
     this.scopes = scopes;
     this.service = service;
   }
 
+  /** 按当前用户权限及筛选条件展示日志分页和选中详情. */
   @GetMapping({"/organizer/logs", "/admin/logs"})
   public String logs(@RequestParam(required = false) Long activityId,
       @RequestParam(required = false) Long sessionId,
@@ -49,6 +52,7 @@ public class OperationLogQueryController {
     return "operation-logs";
   }
 
+  /** 将日志查询失败映射为相应状态码和错误页面. */
   @ExceptionHandler(ActivityException.class)
   public String failure(ActivityException ex, HttpServletResponse response, Model model) {
     response.setStatus(ex.status());

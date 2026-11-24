@@ -129,7 +129,7 @@ class RegistrationHttpTest extends WorkshopTestBase {
   }
 
   @Test
-  void existingQueueKeepsPriorityWhenASeatIsAvailable() throws Exception {
+  void existingQueueKeepsPriorityWhenSeatsAreAvailable() throws Exception {
     registration(10, 4, 1, "WAITLIST");
     jdbc.update("UPDATE registrations SET waitlist_order = 7 WHERE id = 10");
     apply(participant, 1, "register", 409);
@@ -151,7 +151,7 @@ class RegistrationHttpTest extends WorkshopTestBase {
   }
 
   @RepeatedTest(10)
-  void twentyParticipantsCompeteForOneSeatAndALoserCanThenWaitlist() throws Exception {
+  void twentyParticipantsCompeteForOneSeatAndLosersCanThenWaitlist() throws Exception {
     List<MockHttpSession> applicants = new ArrayList<>();
     for (int i = 0; i < 20; i++) {
       user(100 + i, "applicant_" + i, "参与者" + i, "PARTICIPANT");

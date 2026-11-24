@@ -5,17 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.nju.workshop.activity.ActivityQuery;
+import edu.nju.workshop.activity.ActivityQueryService;
+import edu.nju.workshop.activity.Availability;
+import edu.nju.workshop.activity.QueryPage;
+import edu.nju.workshop.activity.SessionRow;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import edu.nju.workshop.activity.ActivityQuery;
-import edu.nju.workshop.activity.ActivityQueryService;
-import edu.nju.workshop.activity.Availability;
-import edu.nju.workshop.activity.QueryPage;
-import edu.nju.workshop.activity.SessionRow;
 
 class SchemaAndDemoTest extends WorkshopTestBase {
 

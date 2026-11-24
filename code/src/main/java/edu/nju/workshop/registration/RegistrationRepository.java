@@ -13,10 +13,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+/** 保存报名状态，并提供场次锁、人数和候补队列查询. */
 @Repository
 public class RegistrationRepository {
   private final JdbcTemplate jdbc;
 
+  /** 使用数据库模板查询和更新报名数据. */
   public RegistrationRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
   }
@@ -59,6 +61,23 @@ public class RegistrationRepository {
         """, (rs, row) -> registration(rs), actorId, sessionId).stream().findFirst().orElse(null);
   }
 
+  Map<Long, Registration> active(long actorId, List<Long> sessionIds) {
+    Map<Long, Registration> result = new HashMap<>();
+    if (sessionIds.isEmpty()) {
+      return result;
+    }
+    List<Object> args = new ArrayList<>();
+    args.add(actorId);
+    args.addAll(sessionIds);
+    String placeholders = String.join(",", sessionIds.stream().map(id -> "?").toList());
+    jdbc.query("SELECT session_id, id, status, waitlist_order FROM registrations"
+        + " WHERE participant_id = ? AND status <> 'CANCELLED' AND session_id IN ("
+        + placeholders + ")", rs -> {
+          result.put(rs.getLong("session_id"), registration(rs));
+        }, args.toArray());
+    return result;
+  }
+
   Registration owned(long actorId, long sessionId, long registrationId) {
     return jdbc.query("""
         SELECT id, status, waitlist_order FROM registrations
@@ -87,23 +106,6 @@ public class RegistrationRepository {
         SELECT id, status, waitlist_order FROM registrations WHERE session_id = ?
           AND status IN ('REGISTERED', 'WAITLIST', 'CHECKED_IN') ORDER BY id
         """, (rs, row) -> registration(rs), sessionId);
-  }
-
-  Map<Long, Registration> active(long actorId, List<Long> sessionIds) {
-    Map<Long, Registration> result = new HashMap<>();
-    if (sessionIds.isEmpty()) {
-      return result;
-    }
-    List<Object> args = new ArrayList<>();
-    args.add(actorId);
-    args.addAll(sessionIds);
-    String placeholders = String.join(",", sessionIds.stream().map(id -> "?").toList());
-    jdbc.query("SELECT session_id, id, status, waitlist_order FROM registrations"
-        + " WHERE participant_id = ? AND status <> 'CANCELLED' AND session_id IN ("
-        + placeholders + ")", rs -> {
-          result.put(rs.getLong("session_id"), registration(rs));
-        }, args.toArray());
-    return result;
   }
 
   Registration insert(long actorId, Session session, boolean waitlist, LocalDateTime receivedAt) {

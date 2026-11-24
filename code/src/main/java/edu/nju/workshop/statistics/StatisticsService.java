@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+/** 按管理权限组织一致快照中的名单、人数统计和完整 CSV 导出. */
 @Service
 public class StatisticsService {
   public static final int PAGE_SIZE = 20;
@@ -21,12 +22,13 @@ public class StatisticsService {
   private final StatisticsRepository repository;
   private final ManagementScopeService scopes;
 
+  /** 使用统计仓库和管理范围服务读取已授权的数据. */
   public StatisticsService(StatisticsRepository repository, ManagementScopeService scopes) {
     this.repository = repository;
     this.scopes = scopes;
   }
 
-  // MySQL 一致性读取使名单、总数、容量及状态统计来自同一个已提交快照。
+  /** 通过 MySQL 一致性读取，在同一已提交快照中查询授权范围内的名单、总数、容量及状态统计. */
   @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
   public StatisticsView search(AccountUser user, Long activityId, Long sessionId,
       int requestedPage) {
@@ -45,6 +47,7 @@ public class StatisticsService {
         attendanceActivityId);
   }
 
+  /** 导出授权筛选范围内的完整报名名单，不受当前分页限制. */
   @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
   public byte[] registrationsCsv(AccountUser user, Long activityId, Long sessionId) {
     ManagementScope scope = scopes.resolve(user, activityId, sessionId);
@@ -60,6 +63,7 @@ public class StatisticsService {
     return csv.bytes();
   }
 
+  /** 导出授权筛选范围内的逐场次人数和总计. */
   @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
   public byte[] summaryCsv(AccountUser user, Long activityId, Long sessionId) {
     ManagementScope scope = scopes.resolve(user, activityId, sessionId);
@@ -82,6 +86,7 @@ public class StatisticsService {
     return value == null ? "" : CSV_TIME.format(value);
   }
 
+  /** 统计页面所需的授权范围、筛选选项、名单及签到入口. */
   public record StatisticsView(ManagementScope scope, List<Choice> activities,
       List<Choice> sessions, StatisticsPage pageData, Long attendanceActivityId) {
   }

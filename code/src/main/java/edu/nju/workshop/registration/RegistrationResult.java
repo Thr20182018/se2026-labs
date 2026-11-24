@@ -2,10 +2,12 @@ package edu.nju.workshop.registration;
 
 import edu.nju.workshop.activity.Availability;
 
+/** 报名操作返回的提示、最新状态、剩余名额及可用按钮数据. */
 public record RegistrationResult(String message, Long registrationId, String status,
     String statusLabel, int remaining, String availability, String availabilityLabel,
     String action, String actionLabel, boolean canApply) {
 
+  /** 按报名记录和场次可用状态生成页面操作反馈. */
   public static RegistrationResult of(String message, Registration registration,
       int remaining, Availability availability) {
     boolean waiting = availability == Availability.WAITLIST;

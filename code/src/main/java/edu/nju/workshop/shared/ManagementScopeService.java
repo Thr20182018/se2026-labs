@@ -8,14 +8,17 @@ import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
+/** 校验管理查询的角色和对象归属，并提供可选活动及场次. */
 @Service
 public class ManagementScopeService {
   private final ManagementScopeRepository repository;
 
+  /** 使用管理范围仓库读取活动和场次归属. */
   public ManagementScopeService(ManagementScopeRepository repository) {
     this.repository = repository;
   }
 
+  /** 校验管理身份及筛选对象，生成后续查询共用的授权范围. */
   public ManagementScope resolve(AccountUser user, Long activityId, Long sessionId) {
     requireManager(user);
     Long ownerId = user.getRole() == Role.ORGANIZER ? user.getId() : null;
@@ -32,14 +35,17 @@ public class ManagementScopeService {
     return new ManagementScope(ownerId, activityId, sessionId);
   }
 
+  /** 返回当前管理者有权查看的活动选项. */
   public List<Choice> activities(ManagementScope scope) {
     return repository.activities(new ManagementScope(scope.ownerId(), null, null));
   }
 
+  /** 返回当前管理者在所选活动范围内有权查看的场次选项. */
   public List<Choice> sessions(ManagementScope scope) {
     return repository.sessions(new ManagementScope(scope.ownerId(), scope.activityId(), null));
   }
 
+  /** 根据已授权的管理角色返回对应页面路径前缀. */
   public String basePath(AccountUser user) {
     requireManager(user);
     return user.getRole() == Role.ADMIN ? "/admin" : "/organizer";
@@ -60,6 +66,7 @@ public class ManagementScopeService {
     }
   }
 
+  /** 管理查询筛选框中的对象编号和展示名称. */
   public record Choice(long id, String label) {
   }
 }

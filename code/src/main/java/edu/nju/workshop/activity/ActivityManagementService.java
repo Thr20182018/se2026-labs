@@ -12,6 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** 负责活动与场次草稿、首次发布审核，以及共用的权限、校验和事务规则. */
 @Service
 public class ActivityManagementService {
 
@@ -20,6 +21,7 @@ public class ActivityManagementService {
   private final AppClock clock;
   private final TransactionTemplate transaction;
 
+  /** 为活动管理配置数据访问、操作日志、业务时钟和事务边界. */
   public ActivityManagementService(ActivityManagementRepository repository,
       OperationLogService logs, AppClock clock, PlatformTransactionManager transactions) {
     this.repository = repository;
@@ -28,26 +30,41 @@ public class ActivityManagementService {
     this.transaction = new TransactionTemplate(transactions);
   }
 
+  /** 校验组织者身份后读取其本人活动概要. */
   public List<ActivitySummary> owned(long actorId) {
     requireRole(actorId, "ORGANIZER");
     return repository.owned(actorId);
   }
 
+  ManagedActivity owned(long actorId, long id, boolean lock) {
+    requireRole(actorId, "ORGANIZER");
+    ManagedActivity activity = repository.find(id, lock)
+        .orElseThrow(() -> new ActivityException(403, "无权访问该活动"));
+    if (activity.organizerId() != actorId) {
+      throw new ActivityException(403, "无权访问该活动");
+    }
+    return activity;
+  }
+
+  /** 校验管理员身份后读取等待首次发布审核的活动. */
   public List<ActivitySummary> pending(long adminId) {
     requireRole(adminId, "ADMIN");
     return repository.pending();
   }
 
+  /** 在只读事务中读取本人活动及其场次，拒绝访问其他组织者的活动. */
   @Transactional(readOnly = true)
   public ManagedActivity ownedActivity(long actorId, long id) {
     return owned(actorId, id, false);
   }
 
+  /** 在只读事务中为管理员读取活动内容和场次详情. */
   @Transactional(readOnly = true)
   public ManagedActivity forReview(long adminId, long id) {
     return reviewable(adminId, id, false);
   }
 
+  /** 校验组织者和活动内容，在同一事务中创建草稿并记录日志. */
   public long create(long actorId, ActivityDraft draft) {
     return execute(actorId, null, null, "CREATE_ACTIVITY", () -> {
       requireRole(actorId, "ORGANIZER");
@@ -58,6 +75,7 @@ public class ActivityManagementService {
     });
   }
 
+  /** 在活动锁内修改可编辑草稿，并记录内容变更前后的值. */
   public void edit(long actorId, long id, ActivityDraft draft) {
     execute(actorId, id, null, "UPDATE_ACTIVITY", () -> {
       ManagedActivity activity = owned(actorId, id, true);
@@ -70,6 +88,7 @@ public class ActivityManagementService {
     });
   }
 
+  /** 为本人活动新增经过时间、地点和容量校验的场次草稿. */
   public long addSession(long actorId, long id, SessionDraft draft) {
     return execute(actorId, id, null, "CREATE_SESSION", () -> {
       ManagedActivity activity = owned(actorId, id, true);
@@ -83,6 +102,7 @@ public class ActivityManagementService {
     });
   }
 
+  /** 在活动和场次锁内编辑未结束的场次草稿，并保存变更日志. */
   public void editSession(long actorId, long id, long sessionId, SessionDraft draft) {
     execute(actorId, id, sessionId, "UPDATE_SESSION", () -> {
       ManagedActivity activity = owned(actorId, id, true);
@@ -100,6 +120,7 @@ public class ActivityManagementService {
     });
   }
 
+  /** 校验活动及全部未取消场次后提交首次发布审核，并递增审核版本. */
   public void submit(long actorId, long id) {
     execute(actorId, id, null, "SUBMIT_REVIEW", () -> {
       ManagedActivity activity = owned(actorId, id, true);
@@ -120,6 +141,7 @@ public class ActivityManagementService {
     });
   }
 
+  /** 核对管理员、待审状态和审核版本，通过时发布活动及全部未取消场次. */
   public void review(long adminId, long id, String decision, long reviewVersion) {
     String action = "approve".equals(decision) ? "APPROVE_REVIEW"
         : "reject".equals(decision) ? "REJECT_REVIEW" : "REVIEW_ACTIVITY";
@@ -153,16 +175,6 @@ public class ActivityManagementService {
     });
   }
 
-  ManagedActivity owned(long actorId, long id, boolean lock) {
-    requireRole(actorId, "ORGANIZER");
-    ManagedActivity activity = repository.find(id, lock)
-        .orElseThrow(() -> new ActivityException(403, "无权访问该活动"));
-    if (activity.organizerId() != actorId) {
-      throw new ActivityException(403, "无权访问该活动");
-    }
-    return activity;
-  }
-
   ManagedActivity reviewable(long adminId, long id, boolean lock) {
     requireRole(adminId, "ADMIN");
     return repository.find(id, lock)
@@ -179,6 +191,12 @@ public class ActivityManagementService {
     requireEditable(activity.status());
   }
 
+  void requireEditable(PublicationStatus status) {
+    if (status != PublicationStatus.DRAFT && status != PublicationStatus.REJECTED) {
+      throw new ActivityException(409, "当前状态不能编辑或重新提交，请刷新页面");
+    }
+  }
+
   private List<ManagedSession> uncancelledSessions(ManagedActivity activity) {
     return activity.sessions().stream()
         .filter(session -> session.status() != PublicationStatus.CANCELLED).toList();
@@ -187,12 +205,6 @@ public class ActivityManagementService {
   private void requireSessionsEditable(ManagedActivity activity) {
     if (!activity.published()) {
       requireEditable(activity);
-    }
-  }
-
-  void requireEditable(PublicationStatus status) {
-    if (status != PublicationStatus.DRAFT && status != PublicationStatus.REJECTED) {
-      throw new ActivityException(409, "当前状态不能编辑或重新提交，请刷新页面");
     }
   }
 

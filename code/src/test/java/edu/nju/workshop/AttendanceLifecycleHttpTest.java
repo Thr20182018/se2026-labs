@@ -191,7 +191,7 @@ class AttendanceLifecycleHttpTest extends LifecycleTestBase {
 
   @ParameterizedTest
   @ValueSource(strings = {"check-in", "cancel"})
-  void executionAtEndAfterWaitingForASessionLockRejectsTheOperation(String operation)
+  void executionAtEndAfterWaitingForSessionLockRejectsTheOperation(String operation)
       throws Exception {
     registration(10, 1, 1, "REGISTERED");
     clock.setBeijing(END.minusSeconds(1));

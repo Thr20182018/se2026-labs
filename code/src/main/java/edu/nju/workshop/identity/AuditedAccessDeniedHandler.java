@@ -17,7 +17,7 @@ import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.NumberUtils;
 
-/** 记录进入业务 Controller 之前被安全过滤器拒绝的关键写操作。 */
+/** 记录进入业务 Controller 之前被安全过滤器拒绝的关键写操作. */
 @Component
 public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
 
@@ -37,6 +37,7 @@ public class AuditedAccessDeniedHandler implements AccessDeniedHandler {
   private final OperationLogService logs;
   private final AccessDeniedHandlerImpl delegate = new AccessDeniedHandlerImpl();
 
+  /** 配置被拒绝写操作的日志记录及拒绝访问页面. */
   public AuditedAccessDeniedHandler(OperationLogService logs) {
     this.logs = logs;
     delegate.setErrorPage("/access-denied");

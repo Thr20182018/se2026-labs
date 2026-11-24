@@ -12,6 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/** 在活动及场次锁内取消活动、场次和关联报名，并记录操作日志. */
 @Service
 public class ActivityLifecycleService {
   private final ActivityManagementService management;
@@ -22,6 +23,7 @@ public class ActivityLifecycleService {
   private final AppClock clock;
   private final TransactionTemplate transaction;
 
+  /** 组合权限、取消和报名服务，并以读已提交事务执行取消联动. */
   public ActivityLifecycleService(ActivityManagementService management,
       ActivityManagementRepository activities, ActivityLifecycleRepository repository,
       RegistrationService registrations, OperationLogService logs, AppClock clock,
@@ -36,15 +38,18 @@ public class ActivityLifecycleService {
     transaction.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
   }
 
+  /** 校验管理员身份后读取全平台活动概要. */
   public List<ActivitySummary> all(long adminId) {
     management.requireRole(adminId, "ADMIN");
     return activities.all();
   }
 
+  /** 校验管理员身份后读取活动及其场次详情. */
   public ManagedActivity forAdmin(long adminId, long activityId) {
     return management.forReview(adminId, activityId);
   }
 
+  /** 取消活动及尚未结束的场次，保留已结束场次和记录. */
   public String cancelActivity(long actorId, long activityId) {
     return execute(actorId, activityId, null, "CANCEL_ACTIVITY", () -> {
       ManagedActivity activity = lock(actorId, activityId);
@@ -67,6 +72,7 @@ public class ActivityLifecycleService {
     });
   }
 
+  /** 取消尚未结束的指定场次，并在同一事务中取消相关有效报名. */
   public String cancelSession(long actorId, long activityId, long sessionId) {
     return execute(actorId, activityId, sessionId, "CANCEL_SESSION", () -> {
       ManagedActivity activity = lock(actorId, activityId);
