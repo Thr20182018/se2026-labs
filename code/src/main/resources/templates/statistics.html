@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>名单与统计 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+  <link rel="stylesheet" th:href="@{/css/management-query.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('statistics')}"></div>
+  <main class="sheet management management-query">
+    <div class="page-head"><h1>名单与统计</h1></div>
+    <section class="management-card">
+      <form class="query-filters" method="get" th:action="@{${basePath + '/statistics'}}">
+        <label for="activityId">活动
+          <select id="activityId" name="activityId"
+              onchange="this.form.sessionId.value = ''; this.form.requestSubmit()">
+            <option value="">全部活动</option>
+            <option th:each="item : ${activities}" th:value="${item.id}"
+                th:selected="${scope.activityId == item.id}" th:text="${item.label}">活动</option>
+          </select>
+        </label>
+        <label for="sessionId">场次
+          <select id="sessionId" name="sessionId">
+            <option value="">全部场次</option>
+            <option th:each="item : ${sessions}" th:value="${item.id}"
+                th:selected="${scope.sessionId == item.id}" th:text="${item.label}">场次</option>
+          </select>
+        </label>
+        <button type="submit">查询</button>
+        <a class="management-link" th:href="@{${basePath + '/statistics'}}">重置</a>
+      </form>
+    </section>
+    <section class="stat-cards" aria-label="容量统计" th:with="summary=${pageData.summary}">
+      <div class="stat-card"><span>报名人数</span><strong th:text="${summary.registered}">0</strong></div>
+      <div class="stat-card"><span>到场人数</span><strong th:text="${summary.attended}">0</strong></div>
+      <div class="stat-card"><span>缺席人数</span><strong th:text="${summary.absent}">0</strong></div>
+      <div class="stat-card"><span>剩余名额</span><strong th:text="${summary.remaining}">0</strong></div>
+    </section>
+    <section class="management-card">
+      <div class="query-toolbar">
+        <h2>报名名单 <small th:text="'共 ' + ${pageData.total} + ' 条'">共 0 条</small></h2>
+        <div class="management-actions">
+          <a class="management-link" th:if="${basePath == '/organizer' and scope.sessionId != null}"
+              th:href="@{/organizer/activities/{aid}/sessions/{sid}/attendance(aid=${attendanceActivityId},sid=${scope.sessionId})}">签到名单</a>
+          <a class="management-link" th:href="@{${basePath + '/statistics/summary.csv'}(activityId=${scope.activityId},sessionId=${scope.sessionId})}">导出统计</a>
+          <a class="management-link" th:href="@{${basePath + '/statistics/registrations.csv'}(activityId=${scope.activityId},sessionId=${scope.sessionId})}">导出名单</a>
+        </div>
+      </div>
+      <p class="empty" th:if="${#lists.isEmpty(pageData.rows)}">暂无报名记录。</p>
+      <div class="query-scroll" th:unless="${#lists.isEmpty(pageData.rows)}">
+        <table class="query-table attendance-table">
+          <thead>
+            <tr><th scope="col">参与者</th><th scope="col">活动与场次</th><th scope="col">组织者</th>
+              <th scope="col">报名时间</th><th scope="col">当前状态</th><th scope="col">签到时间</th></tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${pageData.rows}">
+              <td><span th:text="${item.participantName}">姓名</span>
+                <small class="query-secondary" th:text="${item.account}">账号</small></td>
+              <td><span th:text="${item.activityName}">活动</span>
+                <small class="query-secondary" th:text="${#temporals.format(item.startTime, 'yyyy-MM-dd HH:mm')} + ' → ' + ${#temporals.format(item.endTime, 'yyyy-MM-dd HH:mm')}">场次时间</small>
+                <small class="query-secondary" th:text="'场次 #' + ${item.sessionId}">场次编号</small></td>
+              <td><span th:text="${item.organizerName}">组织者</span>
+                <small class="query-secondary" th:text="${item.organizerAccount}">账号</small></td>
+              <td th:text="${#temporals.format(item.registeredAt, 'yyyy-MM-dd HH:mm:ss')}">报名时间</td>
+              <td><span class="status" th:classappend="${item.status.name()}"
+                  th:text="${item.status.label}">状态</span></td>
+              <td th:text="${item.checkedInAt == null} ? '—' : ${#temporals.format(item.checkedInAt, 'yyyy-MM-dd HH:mm:ss')}">签到时间</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="名单分页" th:if="${pageData.pages > 1}">
+        <a th:if="${pageData.page > 1}" th:href="@{${basePath + '/statistics'}(activityId=${scope.activityId},sessionId=${scope.sessionId},page=${pageData.page - 1})}">上一页</a>
+        <span th:text="${pageData.page} + ' / ' + ${pageData.pages}">1 / 1</span>
+        <a th:if="${pageData.page < pageData.pages}" th:href="@{${basePath + '/statistics'}(activityId=${scope.activityId},sessionId=${scope.sessionId},page=${pageData.page + 1})}">下一页</a>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>

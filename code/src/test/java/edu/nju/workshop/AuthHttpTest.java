@@ -67,17 +67,23 @@ class AuthHttpTest extends WorkshopTestBase {
     assertTrue(participant.contains("我的报名"));
     assertFalse(participant.contains("活动管理"));
     assertFalse(participant.contains("审核管理"));
+    assertFalse(participant.contains("名单与统计"));
+    assertFalse(participant.contains("操作日志"));
 
     String organizer = body(login("su_qing", "ORGANIZER"), "/workshops");
     assertTrue(organizer.contains("苏清和"));
     assertTrue(organizer.contains("组织者"));
     assertTrue(organizer.contains("活动管理"));
     assertFalse(organizer.contains("审核管理"));
+    assertTrue(organizer.contains("/organizer/statistics"));
+    assertTrue(organizer.contains("/organizer/logs"));
 
     String admin = body(login("he_qm", "ADMIN"), "/workshops");
     assertTrue(admin.contains("何启明"));
     assertTrue(admin.contains("管理员"));
     assertTrue(admin.contains("审核管理"));
+    assertTrue(admin.contains("/admin/statistics"));
+    assertTrue(admin.contains("/admin/logs"));
     assertFalse(admin.contains(HASH));
   }
 
@@ -88,7 +94,7 @@ class AuthHttpTest extends WorkshopTestBase {
     denied(login("lin_zy", "PARTICIPANT"), "/organizer/activities/1", "仅苏清和可见");
     denied(login("su_qing", "ORGANIZER"), "/admin/reviews", "审核管理");
     denied(login("su_qing", "ORGANIZER"), "/me/registrations", "我的报名");
-    denied(login("he_qm", "ADMIN"), "/organizer/activities", "活动管理");
+    denied(login("he_qm", "ADMIN"), "/organizer/activities", "href=\"/organizer/activities\"");
     assertTrue(body(login("he_qm", "ADMIN"), "/admin/reviews").contains("审核管理"));
     assertTrue(body(login("su_qing", "ORGANIZER"), "/organizer/activities").contains("活动管理"));
   }

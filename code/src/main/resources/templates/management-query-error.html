@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>查询提示 · 校园工作坊</title>
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/activity-management.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/header :: bar('')}"></div>
+  <main class="sheet narrow management">
+    <h1>查询提示</h1>
+    <p role="alert" th:text="${message}">请检查查询条件。</p>
+    <button type="button" onclick="history.back()">返回修改</button>
+  </main>
+</body>
+</html>

@@ -55,3 +55,9 @@ Linux 将 `.\mvnw.cmd` 换成 `./mvnw`。访问 http://localhost:8080。`verify`
 组织者在场次详情进入“查看名单与签到”，为报名成功者签到；重复签到保留首次时间。后台每 5 秒检查结束场次，将仍未签到的报名转为缺席。组织者和管理员可取消单个场次或整个活动，已结束场次保留，尚未结束场次的有效报名和已签到记录一起取消。管理员从“活动管理”查看所有活动并执行取消。
 
 取消递补和容量调整见 `RegistrationService`；活动取消见 `ActivityLifecycleService`；签到与缺席见 `attendance/`。对应测试为 `CancellationPromotionHttpTest`、`ActivityLifecycleHttpTest`、`AttendanceLifecycleHttpTest`，截止边界在 `RegistrationDeadlineTest`。业务变更与成功日志在同一事务中提交，故障回滚后另记失败日志。
+
+组织者和管理员从导航进入“名单与统计”，按活动和场次筛选，查看报名、到场、缺席和剩余名额。列表每页 20 条，统计和 CSV 导出覆盖完整筛选范围；管理员跨场次按报名记录累计。名单保留所有状态，CSV 使用 UTF-8 BOM，可用 Excel 打开。组织者选定单场次后可进入签到名单。
+
+“操作日志”按活动、场次、时间范围和操作类型组合筛选，时间包含两端，按时间倒序展示。点击记录查看失败原因及修改前后内容。组织者查询本人活动的日志，包括管理员和系统操作；管理员查询全部日志。
+
+T6 复用现有表结构。统计代码见 `statistics/`，日志查询见 `OperationLogQueryController` → `OperationLogQueryService` → `OperationLogQueryRepository`；权限范围由 `ManagementScopeService` 共用。测试见 `ManagementQueryHttpTest`，实际操作步骤见 [T6 验收流程](docs/T6验收流程.md)。

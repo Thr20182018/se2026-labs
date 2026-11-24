@@ -27,6 +27,7 @@
         <div><dt>活动地点</dt><dd th:text="${workshopSession.location}">地点</dd></div>
         <div><dt>场次容量</dt><dd th:text="${workshopSession.capacity} + ' 人'">容量</dd></div>
       </dl>
+      <a class="management-link" th:href="@{/organizer/statistics(activityId=${activity.id},sessionId=${workshopSession.id})}">查看统计与导出</a>
     </section>
     <section class="management-card">
       <h2>报名记录</h2>
